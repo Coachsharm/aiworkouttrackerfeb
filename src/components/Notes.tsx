@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where, or } from 'firebase/firestore';
 import { Button } from './ui/button';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { Note } from './notes/types';
 import NoteCard from './notes/NoteCard';
 import AddNoteForm from './notes/AddNoteForm';
@@ -137,27 +137,44 @@ const Notes = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Quick Notes</h2>
-        <div className="flex items-center gap-2 flex-1 justify-end">
-          <div className="relative flex-1 max-w-md">
-            <Input
-              type="text"
-              placeholder="Search notes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                placeholder="Search notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <Button
+              onClick={() => setIsAdding(true)}
+              className="gap-2"
+              variant="outline"
+            >
+              <Plus className="h-4 w-4" />
+              Add Note
+            </Button>
           </div>
-          <Button
-            onClick={() => setIsAdding(true)}
-            className="gap-2"
-            variant="outline"
-          >
-            <Plus className="h-4 w-4" />
-            Add Note
-          </Button>
+          
+          {searchQuery && (
+            <p className="text-sm text-muted-foreground">
+              Results for "{searchQuery}"
+            </p>
+          )}
         </div>
       </div>
 
