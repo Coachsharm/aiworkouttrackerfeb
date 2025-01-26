@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Save, X } from 'lucide-react';
+import { getSmartIcon } from '@/utils/iconSelector';
 
 interface EditNoteFormProps {
   title: string;
@@ -20,12 +22,27 @@ const EditNoteForm = ({
   onSave,
   onCancel,
 }: EditNoteFormProps) => {
+  const [SmartIcon, setSmartIcon] = useState<any>(null);
+
+  useEffect(() => {
+    const icon = getSmartIcon(title);
+    setSmartIcon(icon);
+  }, [title]);
+
   return (
     <div className="space-y-4">
-      <Input
-        value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
-      />
+      <div className="relative">
+        <Input
+          value={title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          className={SmartIcon ? "pl-10" : ""}
+        />
+        {SmartIcon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <SmartIcon className="h-4 w-4" />
+          </div>
+        )}
+      </div>
       <Textarea
         value={description}
         onChange={(e) => onDescriptionChange(e.target.value)}
