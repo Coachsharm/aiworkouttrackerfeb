@@ -4,8 +4,6 @@ import { Button } from './ui/button';
 import { Plus, Search, X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Note } from './notes/types';
 import AddNoteForm from './notes/AddNoteForm';
-import EditNoteForm from './notes/EditNoteForm';
-import KeywordTags from './notes/KeywordTags';
 import { useToast } from './ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from './ui/input';
@@ -13,6 +11,8 @@ import { extractKeywords } from '@/utils/keywordAnalysis';
 import { cn } from '@/lib/utils';
 import { getSmartIcon } from '@/utils/iconSelector';
 import { format } from 'date-fns';
+import { Separator } from './ui/separator';
+import KeywordTags from './notes/KeywordTags';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -196,6 +196,57 @@ const Notes = () => {
     );
   };
 
+  const formatTextWithLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)|(?<!\S)(www\.[^\s]+)|((?!www\.)[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+    
+    return text.split(urlRegex).map((part, i) => {
+      if (!part) return null;
+      
+      if (part.match(urlRegex)) {
+        let href = part;
+        if (part.startsWith('www.')) {
+          href = `https://${part}`;
+        } else if (!part.startsWith('http')) {
+          href = `https://${part}`;
+        }
+        
+        return (
+          <a
+            key={i}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-primary/80 underline break-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        description: newContent
+      });
+      toast({
+        title: "Note updated",
+        description: "Your changes have been saved."
+      });
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
+        description: "Please try again."
+      });
+    }
+  };
+
   const getNoteTitle = (note: Note) => {
     if (note.title && note.title.trim() !== '') {
       return note.title;
@@ -253,16 +304,19 @@ const Notes = () => {
             )}
           </div>
 
-          {/* Keyword Tags */}
-          <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
-          
-          {searchQuery && (
-            <p className="text-sm text-muted-foreground">
-              Results for "{searchQuery}"
-            </p>
-          )}
+          {/* Keywords and Search Results */}
+          <div className="space-y-2">
+            <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
+            {searchQuery && (
+              <p className="text-sm text-muted-foreground">
+                Results for "{searchQuery}"
+              </p>
+            )}
+          </div>
         </div>
       </div>
+
+      <Separator className="my-6" />
 
       <div className="flex gap-4">
         {/* Sidebar */}
@@ -271,8 +325,6 @@ const Notes = () => {
             "relative transition-all duration-300 ease-in-out border-r",
             isSidebarCollapsed ? "w-12" : "w-64"
           )}
-          onMouseEnter={() => setIsSidebarCollapsed(false)}
-          onMouseLeave={() => setIsSidebarCollapsed(true)}
         >
           {/* Collapse Toggle */}
           <button
@@ -363,7 +415,7 @@ const Notes = () => {
           {selectedNote ? (
             <div className="animate-fade-in space-y-4">
               <div className="flex justify-between items-start">
-                <div>
+                <div className="space-y-1">
                   <h2 className="text-2xl font-semibold">{selectedNote.title}</h2>
                   <p className="text-sm text-muted-foreground">
                     {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
@@ -380,20 +432,25 @@ const Notes = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => startEdit(selectedNote)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
                     onClick={() => deleteNote(selectedNote.id)}
                   >
                     Delete
                   </Button>
                 </div>
               </div>
-              <p className="whitespace-pre-wrap">{selectedNote.description}</p>
+              <div
+                contentEditable
+                suppressContentEditableWarning
+                className="prose prose-sm max-w-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md p-2"
+                onBlur={(e) => handleNoteContentUpdate(selectedNote.id, e.currentTarget.textContent || '')}
+                dangerouslySetInnerHTML={{
+                  __html: formatTextWithLinks(selectedNote.description).map(part => 
+                    typeof part === 'string' ? part : part?.props?.href ? 
+                      `<a href="${part.props.href}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline break-all">${part.props.children}</a>` : 
+                      ''
+                  ).join('')
+                }}
+              />
             </div>
           ) : (
             <div className="text-center text-muted-foreground">
@@ -412,21 +469,6 @@ const Notes = () => {
           onSave={addNote}
           onCancel={() => {
             setIsAdding(false);
-            setNewTitle('');
-            setNewDescription('');
-          }}
-        />
-      )}
-
-      {editingId && (
-        <EditNoteForm
-          title={newTitle}
-          description={newDescription}
-          onTitleChange={setNewTitle}
-          onDescriptionChange={setNewDescription}
-          onSave={() => updateNote(editingId)}
-          onCancel={() => {
-            setEditingId(null);
             setNewTitle('');
             setNewDescription('');
           }}
