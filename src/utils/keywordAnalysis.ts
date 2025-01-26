@@ -1,5 +1,10 @@
 import { Note } from '@/components/notes/types';
 
+export interface KeywordCount {
+  word: string;
+  count: number;
+}
+
 const stopWords = new Set([
   'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves',
   'you', 'your', 'yours', 'yourself', 'he', 'him', 'his',
@@ -15,11 +20,6 @@ const stopWords = new Set([
   'out', 'on', 'off', 'over', 'under', 'again', 'further',
   'then', 'once'
 ]);
-
-export interface KeywordCount {
-  word: string;
-  count: number;
-}
 
 export const extractKeywords = (notes: Note[]): KeywordCount[] => {
   const wordCounts = new Map<string, number>();

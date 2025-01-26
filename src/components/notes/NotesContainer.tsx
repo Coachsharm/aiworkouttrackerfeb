@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  Timestamp,
+  deleteDoc,
+  doc,
+  addDoc,
+  updateDoc
+} from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Note, SortOption, SortDirection } from './types';
@@ -137,6 +148,142 @@ const NotesContainer = () => {
 
   const handleKeywordClick = (keyword: string) => {
     setSearchQuery(keyword);
+  };
+
+  const handleShare = async (note: Note) => {
+    try {
+      await navigator.share({
+        title: note.title || 'Shared Note',
+        text: note.description
+      });
+      toast({
+        title: "Note shared successfully"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error sharing note",
+        description: "Your browser might not support sharing"
+      });
+    }
+  };
+
+  const handleCopy = async (note: Note) => {
+    try {
+      await navigator.clipboard.writeText(note.description);
+      toast({
+        title: "Note copied to clipboard"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error copying note",
+        description: "Could not copy to clipboard"
+      });
+    }
+  };
+
+  const updateNoteIcon = async (noteId: string, icon: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, { icon });
+      toast({
+        title: "Note icon updated"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error updating note icon"
+      });
+    }
+  };
+
+  const togglePin = async (noteId: string) => {
+    try {
+      const note = notes.find(n => n.id === noteId);
+      if (!note) return;
+      
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, { 
+        isPinned: !note.isPinned 
+      });
+      toast({
+        title: note.isPinned ? "Note unpinned" : "Note pinned"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error toggling pin"
+      });
+    }
+  };
+
+  const deleteNote = async (noteId: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, { 
+        isDeleted: true,
+        deletedAt: Timestamp.now()
+      });
+      toast({
+        title: "Note moved to trash"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error deleting note"
+      });
+    }
+  };
+
+  const handleNoteContentUpdate = async (noteId: string, content: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, { 
+        description: content,
+        modifiedAt: Timestamp.now()
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error updating note"
+      });
+    }
+  };
+
+  const restoreNote = async (noteId: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, { 
+        isDeleted: false,
+        deletedAt: null
+      });
+      toast({
+        title: "Note restored"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error restoring note"
+      });
+    }
+  };
+
+  const emptyTrash = async () => {
+    try {
+      const promises = trashedNotes.map(note => 
+        deleteDoc(doc(db, 'notes', note.id))
+      );
+      await Promise.all(promises);
+      toast({
+        title: "Trash emptied"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error emptying trash"
+      });
+    }
   };
 
   return (

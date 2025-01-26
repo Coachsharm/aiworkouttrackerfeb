@@ -4,13 +4,14 @@ import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import KeywordTags from './KeywordTags';
 import QuickNoteInput from './QuickNoteInput';
+import { KeywordCount } from '@/utils/keywordAnalysis';
 
 interface NotesHeaderProps {
   quickNote: string;
   setQuickNote: (value: string) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  keywords: string[];
+  keywords: KeywordCount[];
   onAddNote: () => void;
   onKeywordClick: (keyword: string) => void;
 }
