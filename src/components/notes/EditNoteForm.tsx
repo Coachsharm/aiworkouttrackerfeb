@@ -31,7 +31,6 @@ const EditNoteForm = ({
 }: EditNoteFormProps) => {
   const [SmartIcon, setSmartIcon] = useState<any>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string>('');
-  const [iconColor, setIconColor] = useState<string>('currentColor');
   const allIcons = getAllIcons();
 
   useEffect(() => {
@@ -58,8 +57,8 @@ const EditNoteForm = ({
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
-        <Select value={selectedIconKey} onValueChange={handleIconSelect} className="w-[120px]">
-          <SelectTrigger>
+        <Select value={selectedIconKey} onValueChange={handleIconSelect}>
+          <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Icon" />
           </SelectTrigger>
           <SelectContent>
