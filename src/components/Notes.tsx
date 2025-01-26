@@ -1,53 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
-import { Button } from './ui/button';
-import { Plus, Search, X, ChevronRight, ChevronLeft, Share2, Copy, Pin, Trash2, ArrowUpDown, Trash, RotateCcw } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Note, SortOption, SortDirection } from './notes/types';
-import AddNoteForm from './notes/AddNoteForm';
-import { useToast } from './ui/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { Input } from './ui/input';
 import { extractKeywords } from '@/utils/keywordAnalysis';
-import { cn } from '@/lib/utils';
-import { getSmartIcon, getAllIcons } from '@/utils/iconSelector';
-import { format } from 'date-fns';
+import { useToast } from './ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from './ui/separator';
 import KeywordTags from './notes/KeywordTags';
+import NoteSidebar from './notes/NoteSidebar';
+import NoteContent from './notes/NoteContent';
+import QuickNoteInput from './notes/QuickNoteInput';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [quickNote, setQuickNote] = useState('');
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [pinnedNotes, setPinnedNotes] = useState<string[]>([]);
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const db = getFirestore();
-
-  const [keywords, setKeywords] = useState([]);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('sidebarWidth');
-    return saved ? parseInt(saved) : 30; // Default to 30% if not saved
+    return saved ? parseInt(saved) : 30;
   });
   const [sortOption, setSortOption] = useState<SortOption>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [trashedNotes, setTrashedNotes] = useState<Note[]>([]);
+  const [keywords, setKeywords] = useState([]);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const db = getFirestore();
 
   useEffect(() => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString());
@@ -141,21 +126,19 @@ const Notes = () => {
     if (!user) return;
     try {
       await addDoc(collection(db, 'notes'), {
-        title: newTitle.trim() || '',
-        description: newDescription.trim(),
+        title: '',
+        description: quickNote.trim(),
         createdAt: Timestamp.now(),
         modifiedAt: Timestamp.now(),
         userId: user.uid
       });
-      setNewTitle('');
-      setNewDescription('');
-      setIsAdding(false);
+      setQuickNote('');
       toast({
-        title: "Note added successfully",
+        title: "Quick note added",
         description: "Your note has been saved."
       });
     } catch (error) {
-      console.error('Error adding note:', error);
+      console.error('Error adding quick note:', error);
       toast({
         variant: "destructive",
         title: "Error saving note",
@@ -164,25 +147,47 @@ const Notes = () => {
     }
   };
 
-  const updateNote = async (noteId: string) => {
+  const togglePin = async (noteId: string) => {
     try {
       const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, {
-        title: newTitle.trim() || 'Untitled',
-        description: newDescription.trim(),
-        modifiedAt: Timestamp.now()
-      });
-      setEditingId(null);
-      toast({
-        title: "Note updated successfully",
-        description: "Your changes have been saved."
-      });
+      const note = notes.find(n => n.id === noteId);
+      if (note) {
+        await updateDoc(noteRef, {
+          isPinned: !note.isPinned,
+          modifiedAt: Timestamp.now()
+        });
+        toast({
+          title: note.isPinned ? "Note unpinned" : "Note pinned",
+          description: note.isPinned ? "The note has been unpinned." : "The note has been pinned."
+        });
+      }
     } catch (error) {
-      console.error('Error updating note:', error);
+      console.error('Error toggling pin:', error);
       toast({
         variant: "destructive",
         title: "Error updating note",
-        description: "Please make sure you're logged in and try again."
+        description: "Please try again."
+      });
+    }
+  };
+
+  const updateNoteIcon = async (noteId: string, iconKey: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        icon: iconKey,
+        modifiedAt: Timestamp.now()
+      });
+      toast({
+        title: "Icon updated",
+        description: "The note's icon has been updated."
+      });
+    } catch (error) {
+      console.error('Error updating note icon:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating icon",
+        description: "Please try again."
       });
     }
   };
@@ -255,202 +260,20 @@ const Notes = () => {
     }
   };
 
-  const updateNoteIcon = async (noteId: string, iconKey: string) => {
-    try {
-      const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, {
-        icon: iconKey,
-        modifiedAt: Timestamp.now()
-      });
-      toast({
-        title: "Icon updated",
-        description: "The note's icon has been updated."
-      });
-    } catch (error) {
-      console.error('Error updating note icon:', error);
-      toast({
-        variant: "destructive",
-        title: "Error updating icon",
-        description: "Please try again."
-      });
-    }
-  };
-
-  const formatTextWithLinks = (text: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)|(?<!\S)(www\.[^\s]+)|((?!www\.)[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
-    
-    return text.split(urlRegex).map((part, i) => {
-      if (!part) return null;
-      
-      if (part.match(urlRegex)) {
-        let href = part;
-        if (part.startsWith('www.')) {
-          href = `https://${part}`;
-        } else if (!part.startsWith('http')) {
-          href = `https://${part}`;
-        }
-        
-        return (
-          <a
-            key={i}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:text-primary/80 underline break-all"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {part}
-          </a>
-        );
-      }
-      return part;
-    });
-  };
-
-  const getNoteTitle = (note: Note) => {
-    if (note.title && note.title.trim() !== '') {
-      return note.title;
-    }
-    return note.description.split(' ').slice(0, 3).join(' ') + '...';
-  };
-
-  const handleShare = async (note: Note) => {
-    const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: note.title || 'Shared Note',
-          text: noteText,
-        });
-        toast({
-          title: "Shared successfully",
-          description: "The note has been shared."
-        });
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          toast({
-            variant: "destructive",
-            title: "Error sharing note",
-            description: "Please try again."
-          });
-        }
-      }
-    } else {
-      await navigator.clipboard.writeText(noteText);
-      toast({
-        title: "Copied to clipboard",
-        description: "The note has been copied to your clipboard."
-      });
-    }
-  };
-
-  const handleCopy = async (note: Note) => {
-    const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
-    try {
-      await navigator.clipboard.writeText(noteText);
-      toast({
-        title: "Copied to clipboard",
-        description: "The note has been copied to your clipboard."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error copying note",
-        description: "Please try again."
-      });
-    }
-  };
-
-  const handleQuickNoteAdd = async () => {
-    if (!user || !quickNote.trim()) return;
-    
-    try {
-      await addDoc(collection(db, 'notes'), {
-        title: '',
-        description: quickNote.trim(),
-        createdAt: Timestamp.now(),
-        modifiedAt: Timestamp.now(),
-        userId: user.uid
-      });
-      setQuickNote('');
-      toast({
-        title: "Quick note added",
-        description: "Your note has been saved."
-      });
-    } catch (error) {
-      console.error('Error adding quick note:', error);
-      toast({
-        variant: "destructive",
-        title: "Error saving note",
-        description: "Please make sure you're logged in and try again."
-      });
-    }
-  };
-
   const handleKeywordClick = (keyword: string) => {
     setSearchQuery(keyword);
-  };
-
-  const togglePin = (noteId: string) => {
-    setPinnedNotes(prev => {
-      if (prev.includes(noteId)) {
-        return prev.filter(id => id !== noteId);
-      }
-      return [...prev, noteId];
-    });
-  };
-
-  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
-    try {
-      const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, {
-        description: newContent,
-        modifiedAt: Timestamp.now()
-      });
-      toast({
-        title: "Note updated",
-        description: "Your changes have been saved."
-      });
-    } catch (error) {
-      console.error('Error updating note:', error);
-      toast({
-        variant: "destructive",
-        title: "Error updating note",
-        description: "Please try again."
-      });
-    }
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
       <div className="space-y-4">
         <div className="flex flex-col gap-4">
-          {/* Quick Note Input */}
-          <div className="flex items-center gap-2">
-            <Input
-              type="text"
-              placeholder="Title (use comma to separate)"
-              value={quickNote}
-              onChange={(e) => setQuickNote(e.target.value)}
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleQuickNoteAdd();
-                }
-              }}
-            />
-            <Button
-              onClick={handleQuickNoteAdd}
-              className="gap-2 whitespace-nowrap"
-              variant="outline"
-            >
-              <Plus className="h-4 w-4" />
-              Add Note
-            </Button>
-          </div>
+          <QuickNoteInput
+            value={quickNote}
+            onChange={setQuickNote}
+            onAdd={addNote}
+          />
 
-          {/* Search Input */}
           <div className="relative">
             <Input
               type="text"
@@ -470,7 +293,6 @@ const Notes = () => {
             )}
           </div>
 
-          {/* Keywords */}
           <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
         </div>
       </div>
@@ -486,250 +308,41 @@ const Notes = () => {
           onResize={(size) => setSidebarWidth(size)}
           className="bg-background"
         >
-          <div className="h-full space-y-4 overflow-y-auto p-4">
-            {/* Sorting Options */}
-            <div className="flex justify-between items-center px-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <ArrowUpDown className="h-4 w-4" />
-                    Sort by
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setSortOption('title')}>
-                    Title {sortOption === 'title' && '✓'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOption('createdAt')}>
-                    Created Date {sortOption === 'createdAt' && '✓'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOption('modifiedAt')}>
-                    Modified Date {sortOption === 'modifiedAt' && '✓'}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleSortDirection}
-                className="gap-2"
-              >
-                {sortDirection === 'asc' ? '↑' : '↓'}
-              </Button>
-            </div>
-
-            {/* Pinned Notes */}
-            {pinnedNotes.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-bold px-2 text-yellow-500 flex items-center gap-2">
-                  <Pin className="h-4 w-4" />
-                  Pinned
-                </h3>
-                {notes
-                  .filter(note => pinnedNotes.includes(note.id))
-                  .map(note => {
-                    const SmartIcon = note.icon ? getSmartIcon(note.icon) : getSmartIcon(note.title);
-                    return (
-                      <div
-                        key={note.id}
-                        onClick={() => setSelectedNote(note)}
-                        className={cn(
-                          "flex items-center gap-2 p-2 cursor-pointer hover:bg-accent rounded-md transition-colors",
-                          selectedNote?.id === note.id && "bg-accent"
-                        )}
-                      >
-                        {SmartIcon && <SmartIcon className="h-4 w-4 shrink-0" />}
-                        <span className="truncate max-w-[180px]">
-                          {getNoteTitle(note)}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            )}
-
-            {/* All Notes */}
-            <div className="space-y-2">
-              <h3 className="font-bold px-2 text-yellow-500">All Notes</h3>
-              {notes
-                .filter(note => !pinnedNotes.includes(note.id))
-                .map(note => {
-                  const SmartIcon = note.icon ? getSmartIcon(note.icon) : getSmartIcon(note.title);
-                  return (
-                    <div
-                      key={note.id}
-                      onClick={() => setSelectedNote(note)}
-                      className={cn(
-                        "flex items-center gap-2 p-2 cursor-pointer hover:bg-accent rounded-md transition-colors",
-                        selectedNote?.id === note.id && "bg-accent"
-                      )}
-                    >
-                      {SmartIcon && <SmartIcon className="h-4 w-4 shrink-0" />}
-                      <span className="truncate max-w-[180px]">
-                        {getNoteTitle(note)}
-                      </span>
-                    </div>
-                  );
-                })}
-            </div>
-
-            {/* Trashcan */}
-            {trashedNotes.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center px-2">
-                  <h3 className="font-bold text-red-500 flex items-center gap-2">
-                    <Trash className="h-4 w-4" />
-                    Trashcan
-                  </h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={emptyTrash}
-                    className="text-red-500 hover:text-red-600"
-                  >
-                    Empty
-                  </Button>
-                </div>
-                {trashedNotes.map(note => (
-                  <div
-                    key={note.id}
-                    className="flex items-center gap-2 p-2 hover:bg-accent rounded-md"
-                  >
-                    <span className="truncate flex-1">{getNoteTitle(note)}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => restoreNote(note.id)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <NoteSidebar
+            notes={notes}
+            trashedNotes={trashedNotes}
+            selectedNote={selectedNote}
+            sortOption={sortOption}
+            sortDirection={sortDirection}
+            onNoteSelect={setSelectedNote}
+            onSortOptionChange={setSortOption}
+            onSortDirectionToggle={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+            onRestoreNote={restoreNote}
+            onEmptyTrash={emptyTrash}
+          />
         </ResizablePanel>
 
         <ResizableHandle />
 
         <ResizablePanel defaultSize={70}>
-          <div className="p-4">
-            {selectedNote ? (
-              <div className="animate-fade-in space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <h2 className="text-2xl font-semibold text-yellow-500">
-                      {selectedNote.title}
-                    </h2>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <p>Created: {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}</p>
-                      <p>Modified: {format(selectedNote.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleShare(selectedNote)}
-                      title="Share note"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleCopy(selectedNote)}
-                      title="Copy note"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Change icon"
-                        >
-                          {selectedNote.icon ? 
-                            React.createElement(getSmartIcon(selectedNote.icon) || (() => null), { className: "h-4 w-4" })
-                            : <Plus className="h-4 w-4" />
-                          }
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {getAllIcons().map(({ icon: Icon, keywords }) => (
-                          <DropdownMenuItem
-                            key={keywords}
-                            onClick={() => updateNoteIcon(selectedNote.id, keywords)}
-                          >
-                            <div className="flex items-center gap-2">
-                              {Icon && <Icon className="h-4 w-4" />}
-                              <span className="capitalize">{keywords}</span>
-                              {selectedNote.icon === keywords && '✓'}
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => togglePin(selectedNote.id)}
-                      title={pinnedNotes.includes(selectedNote.id) ? "Unpin" : "Pin"}
-                    >
-                      <Pin className={cn(
-                        "h-4 w-4",
-                        pinnedNotes.includes(selectedNote.id) && "text-yellow-500"
-                      )} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteNote(selectedNote.id)}
-                      title="Move to trash"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="prose prose-sm max-w-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md p-2"
-                  onBlur={(e) => handleNoteContentUpdate(selectedNote.id, e.currentTarget.textContent || '')}
-                  dangerouslySetInnerHTML={{
-                    __html: formatTextWithLinks(selectedNote.description).map(part => 
-                      typeof part === 'string' ? part : part?.props?.href ? 
-                        `<a href="${part.props.href}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline break-all">${part.props.children}</a>` : 
-                        ''
-                    ).join('')
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                Select a note to view its contents
-              </div>
-            )}
-          </div>
+          {selectedNote ? (
+            <NoteContent
+              note={selectedNote}
+              isPinned={selectedNote.isPinned}
+              onShare={handleShare}
+              onCopy={handleCopy}
+              onIconChange={updateNoteIcon}
+              onPinToggle={togglePin}
+              onDelete={deleteNote}
+              onContentUpdate={handleNoteContentUpdate}
+            />
+          ) : (
+            <div className="text-center text-muted-foreground p-4">
+              Select a note to view its contents
+            </div>
+          )}
         </ResizablePanel>
       </ResizablePanelGroup>
-
-      {isAdding && (
-        <AddNoteForm
-          title={newTitle}
-          description={newDescription}
-          onTitleChange={setNewTitle}
-          onDescriptionChange={setNewDescription}
-          onSave={addNote}
-          onCancel={() => {
-            setIsAdding(false);
-            setNewTitle('');
-            setNewDescription('');
-          }}
-        />
-      )}
     </div>
   );
 };

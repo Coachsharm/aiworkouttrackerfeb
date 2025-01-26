@@ -10,6 +10,7 @@ export interface Note {
   icon?: string;
   isDeleted?: boolean;
   deletedAt?: Timestamp;
+  isPinned?: boolean;
 }
 
 export type SortOption = 'title' | 'createdAt' | 'modifiedAt';
