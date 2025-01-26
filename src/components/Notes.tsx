@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Button } from './ui/button';
 import { Plus, Search, X, ChevronRight, ChevronLeft, Share2, Copy, Pin, Trash2 } from 'lucide-react';
 import { Note } from './notes/types';
