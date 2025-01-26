@@ -178,17 +178,17 @@ const Notes = () => {
     return firstLine.length > 30 ? firstLine.substring(0, 30) + '...' : firstLine;
   };
 
-  const handleDragOver = useCallback((event: React.DragEvent<Element>) => {
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragActive(true);
   }, []);
 
-  const handleDragLeave = useCallback((event: React.DragEvent<Element>) => {
+  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragActive(false);
   }, []);
 
-  const handleDrop = useCallback(async (event: React.DragEvent<Element>) => {
+  const handleDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragActive(false);
 
