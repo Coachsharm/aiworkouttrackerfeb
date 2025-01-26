@@ -70,3 +70,7 @@
 .button-style {
   @apply bg-primary hover:bg-primary/90 text-primary-foreground shadow transition-colors;
 }
+
+.card-gradient {
+  @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
+}

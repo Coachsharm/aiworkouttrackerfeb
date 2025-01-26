@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -33,13 +34,16 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8 animate-fadeIn">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Body Thrive Chatbot</h1>
+          <h1 className="text-2xl font-bold text-foreground">Body Thrive Chatbot</h1>
           <p className="text-muted-foreground">Coach Sharm, MSc</p>
         </div>
         
-        <form onSubmit={handleLogin} className="glass-card p-8 space-y-6 rounded-lg">
+        <form onSubmit={handleLogin} className="card-gradient p-8 space-y-6 rounded-lg shadow-lg">
           <div className="space-y-4">
             <div className="space-y-2">
               <Input
@@ -47,7 +51,7 @@ const Login = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-style"
+                className="bg-background/50 border-input hover:bg-background/80 transition-colors"
                 required
               />
             </div>
@@ -58,7 +62,7 @@ const Login = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-style"
+                className="bg-background/50 border-input hover:bg-background/80 transition-colors"
                 required
               />
             </div>
@@ -66,7 +70,7 @@ const Login = () => {
 
           <Button
             type="submit"
-            className="w-full button-style"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
