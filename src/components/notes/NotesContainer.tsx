@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, onSnapshot, query, orderBy, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { db, storage } from '@/lib/firebase';
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  serverTimestamp, 
+  updateDoc, 
+  doc, 
+  Timestamp 
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth } from '@/lib/firebase';
 import NotesContent from './NotesContent';
 import { Note } from './types';
@@ -41,7 +51,6 @@ const NotesContainer = () => {
         modifiedAt: serverTimestamp()
       });
       
-      // Update local state
       setNotes(notes.map(note => 
         note.id === noteId 
           ? { 

@@ -28,6 +28,7 @@ interface NotesContentProps {
   onContentUpdate: (noteId: string, content: string) => void;
   onRestoreNote: (noteId: string) => void;
   onEmptyTrash: () => void;
+  onImageUpload: (noteId: string, file: File) => Promise<void>;
 }
 
 const NotesContent = ({
@@ -48,7 +49,8 @@ const NotesContent = ({
   onDelete,
   onContentUpdate,
   onRestoreNote,
-  onEmptyTrash
+  onEmptyTrash,
+  onImageUpload
 }: NotesContentProps) => {
   return (
     <ResizablePanelGroup
@@ -91,6 +93,7 @@ const NotesContent = ({
             onPinToggle={onPinToggle}
             onDelete={onDelete}
             onContentUpdate={onContentUpdate}
+            onImageUpload={onImageUpload}
           />
         ) : (
           <div className="text-center text-muted-foreground p-4">
