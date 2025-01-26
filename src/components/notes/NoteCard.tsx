@@ -3,6 +3,8 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Note } from './types';
+import { getSmartIcon } from '@/utils/iconSelector';
+import { useEffect, useState } from 'react';
 
 interface NoteCardProps {
   note: Note;
@@ -41,14 +43,26 @@ const formatTextWithLinks = (text: string) => {
 };
 
 const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
+  const [SmartIcon, setSmartIcon] = useState<any>(null);
+
+  useEffect(() => {
+    const icon = getSmartIcon(note.title);
+    setSmartIcon(icon);
+  }, [note.title]);
+
   return (
     <Card className="p-4 space-y-4">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           {note.title && note.title.trim() !== '' && (
-            <h3 className="text-lg font-medium dark:text-amber-400 text-amber-600 mb-2">
-              {note.title}
-            </h3>
+            <div className="flex items-center gap-2 mb-2">
+              {SmartIcon && (
+                <SmartIcon className="h-5 w-5 text-muted-foreground" />
+              )}
+              <h3 className="text-lg font-medium dark:text-amber-400 text-amber-600">
+                {note.title}
+              </h3>
+            </div>
           )}
           <p className="text-black dark:text-white whitespace-pre-wrap break-words mb-2">
             {formatTextWithLinks(note.description)}

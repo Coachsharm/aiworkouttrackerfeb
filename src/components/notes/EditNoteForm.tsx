@@ -36,6 +36,7 @@ const EditNoteForm = ({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           className={SmartIcon ? "pl-10" : ""}
+          placeholder="Title (optional)"
         />
         {SmartIcon && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -46,6 +47,7 @@ const EditNoteForm = ({
       <Textarea
         value={description}
         onChange={(e) => onDescriptionChange(e.target.value)}
+        placeholder="Description"
       />
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel}>
