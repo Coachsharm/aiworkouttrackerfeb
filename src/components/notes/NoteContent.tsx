@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Share2, Copy, Pin, Trash2, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -33,6 +33,8 @@ const NoteContent = ({
   onDelete,
   onContentUpdate
 }: NoteContentProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+
   const formatTextWithLinks = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)|(?<!\S)(www\.[^\s]+)|((?!www\.)[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
     
@@ -56,7 +58,9 @@ const NoteContent = ({
             className="text-blue-500 hover:text-blue-600 underline break-all"
             onClick={(e) => {
               e.stopPropagation();
-              window.open(href, '_blank');
+              if (!isEditing) {
+                window.open(href, '_blank');
+              }
             }}
           >
             {part}
@@ -65,6 +69,17 @@ const NoteContent = ({
       }
       return part;
     });
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if (!(e.target as HTMLElement).closest('a')) {
+      setIsEditing(true);
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    setIsEditing(false);
+    onContentUpdate(note.id, e.currentTarget.textContent || '');
   };
 
   return (
@@ -147,16 +162,14 @@ const NoteContent = ({
           </div>
         </div>
         <div
-          contentEditable
+          contentEditable={isEditing}
           suppressContentEditableWarning
-          className="prose prose-sm max-w-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md p-2"
-          onBlur={(e) => onContentUpdate(note.id, e.currentTarget.textContent || '')}
-          onDoubleClick={(e) => {
-            // Only enter edit mode if not clicking a link
-            if (!(e.target as HTMLElement).closest('a')) {
-              e.currentTarget.focus();
-            }
-          }}
+          className={cn(
+            "prose prose-sm max-w-none rounded-md p-2",
+            isEditing && "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          )}
+          onDoubleClick={handleDoubleClick}
+          onBlur={handleBlur}
           dangerouslySetInnerHTML={{
             __html: formatTextWithLinks(note.description).map(part => 
               typeof part === 'string' ? part : part?.props?.href ? 

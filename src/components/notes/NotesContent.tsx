@@ -53,12 +53,8 @@ const NotesContent = ({
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="min-h-[calc(100vh-16rem)] rounded-lg border relative"
+      className="min-h-[calc(100vh-16rem)] rounded-lg border"
     >
-      <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 pointer-events-none flex items-center opacity-50 transition-opacity group-hover:opacity-100">
-        <GripHorizontal className="h-4 w-4" />
-      </div>
-      
       <ResizablePanel 
         defaultSize={sidebarWidth}
         onResize={onSidebarWidthChange}
@@ -78,7 +74,11 @@ const NotesContent = ({
         />
       </ResizablePanel>
 
-      <ResizableHandle />
+      <ResizableHandle className="w-2 bg-border/10 hover:bg-border/20 transition-colors">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <GripHorizontal className="h-4 w-4 text-muted-foreground/40" />
+        </div>
+      </ResizableHandle>
 
       <ResizablePanel defaultSize={70}>
         {selectedNote ? (
