@@ -50,7 +50,7 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
               {note.title}
             </h3>
           )}
-          <p className="text-muted-foreground whitespace-pre-wrap break-words mb-2">
+          <p className="text-black dark:text-white whitespace-pre-wrap break-words mb-2">
             {formatTextWithLinks(note.description)}
           </p>
           <p className="text-sm text-muted-foreground">

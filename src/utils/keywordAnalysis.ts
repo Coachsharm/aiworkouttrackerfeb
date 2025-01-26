@@ -26,7 +26,18 @@ export const extractKeywords = (notes: Note[]): KeywordCount[] => {
 
   notes.forEach(note => {
     const text = `${note.title} ${note.description}`.toLowerCase();
-    const words = text.split(/\s+/);
+    
+    // First, extract URLs and add them as complete keywords
+    const urlRegex = /(https?:\/\/[^\s]+)|(?<!\S)(www\.[^\s]+)|((?!www\.)[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+    const urls = text.match(urlRegex) || [];
+    urls.forEach(url => {
+      wordCounts.set(url, (wordCounts.get(url) || 0) + 1);
+    });
+
+    // Then process remaining words
+    const words = text
+      .replace(urlRegex, '') // Remove URLs before splitting
+      .split(/\s+/);
 
     words.forEach(word => {
       // Clean the word (remove punctuation, etc.)
