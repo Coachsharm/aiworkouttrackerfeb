@@ -58,7 +58,9 @@ const NotesContent = ({
       className="min-h-[calc(100vh-16rem)] rounded-lg border"
     >
       <ResizablePanel 
-        defaultSize={sidebarWidth}
+        defaultSize={30}
+        minSize={20}
+        maxSize={40}
         onResize={onSidebarWidthChange}
         className="bg-background"
       >
@@ -82,11 +84,11 @@ const NotesContent = ({
         </div>
       </ResizableHandle>
 
-      <ResizablePanel defaultSize={70}>
+      <ResizablePanel defaultSize={70} minSize={60} maxSize={80}>
         {selectedNote ? (
           <NoteContent
             note={selectedNote}
-            isPinned={selectedNote.isPinned}
+            isPinned={selectedNote.isPinned || false}
             onShare={onShare}
             onCopy={onCopy}
             onIconChange={onIconChange}

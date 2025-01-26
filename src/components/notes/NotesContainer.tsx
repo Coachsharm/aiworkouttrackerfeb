@@ -13,21 +13,29 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth } from '@/lib/firebase';
 import NotesContent from './NotesContent';
-import { Note } from './types';
+import { Note, SortOption, SortDirection } from './types';
 
 const NotesContainer = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [trashedNotes, setTrashedNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState(250);
-  const [sortOption, setSortOption] = useState<'title' | 'createdAt' | 'modifiedAt'>('createdAt');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortOption, setSortOption] = useState<SortOption>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   useEffect(() => {
+    if (!auth.currentUser) return;
+
     const notesRef = collection(db, 'notes');
-    const q = query(notesRef, orderBy(sortOption, sortDirection));
+    const q = query(
+      notesRef,
+      orderBy(sortOption, sortDirection)
+    );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Note[];
+      const notesData = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() })) as Note[];
+      
       setNotes(notesData.filter(note => !note.isDeleted));
       setTrashedNotes(notesData.filter(note => note.isDeleted));
     });
@@ -36,8 +44,10 @@ const NotesContainer = () => {
   }, [sortOption, sortDirection]);
 
   const handleImageUpload = async (noteId: string, file: File) => {
+    if (!auth.currentUser) return;
+
     try {
-      const storageRef = ref(storage, `notes/${auth.currentUser?.uid}/${noteId}/${file.name}`);
+      const storageRef = ref(storage, `notes/${auth.currentUser.uid}/${noteId}/${file.name}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       
@@ -66,6 +76,50 @@ const NotesContainer = () => {
     }
   };
 
+  const handleNoteSelect = (note: Note) => {
+    setSelectedNote(note);
+  };
+
+  const handleSortOptionChange = (option: SortOption) => {
+    setSortOption(option);
+  };
+
+  const handleSortDirectionChange = (direction: SortDirection) => {
+    setSortDirection(direction);
+  };
+
+  const handleShare = (note: Note) => {
+    // Share functionality
+  };
+
+  const handleCopy = (note: Note) => {
+    // Copy functionality
+  };
+
+  const handleIconChange = (noteId: string, icon: string) => {
+    // Icon change functionality
+  };
+
+  const handlePinToggle = (noteId: string) => {
+    // Pin toggle functionality
+  };
+
+  const handleDelete = (noteId: string) => {
+    // Delete functionality
+  };
+
+  const handleContentUpdate = (noteId: string, content: string) => {
+    // Content update functionality
+  };
+
+  const handleRestoreNote = (noteId: string) => {
+    // Restore functionality
+  };
+
+  const handleEmptyTrash = () => {
+    // Empty trash functionality
+  };
+
   return (
     <NotesContent
       notes={notes}
@@ -75,17 +129,17 @@ const NotesContainer = () => {
       sortOption={sortOption}
       sortDirection={sortDirection}
       onSidebarWidthChange={setSidebarWidth}
-      onNoteSelect={setSelectedNote}
-      onSortOptionChange={setSortOption}
-      onSortDirectionChange={setSortDirection}
-      onShare={() => {}}
-      onCopy={() => {}}
-      onIconChange={() => {}}
-      onPinToggle={() => {}}
-      onDelete={() => {}}
-      onContentUpdate={() => {}}
-      onRestoreNote={() => {}}
-      onEmptyTrash={() => {}}
+      onNoteSelect={handleNoteSelect}
+      onSortOptionChange={handleSortOptionChange}
+      onSortDirectionChange={handleSortDirectionChange}
+      onShare={handleShare}
+      onCopy={handleCopy}
+      onIconChange={handleIconChange}
+      onPinToggle={handlePinToggle}
+      onDelete={handleDelete}
+      onContentUpdate={handleContentUpdate}
+      onRestoreNote={handleRestoreNote}
+      onEmptyTrash={handleEmptyTrash}
       onImageUpload={handleImageUpload}
     />
   );
