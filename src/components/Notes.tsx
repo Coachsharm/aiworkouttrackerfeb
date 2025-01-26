@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 import { Button } from './ui/button';
-import { Plus, Search, X, ChevronRight, ChevronLeft, Share2, Copy, Pin, Trash2 } from 'lucide-react';
-import { Note } from './notes/types';
+import { Plus, Search, X, ChevronRight, ChevronLeft, Share2, Copy, Pin, Trash2, ArrowUpDown, Trash, RotateCcw } from 'lucide-react';
+import { Note, SortOption, SortDirection } from './notes/types';
 import AddNoteForm from './notes/AddNoteForm';
 import { useToast } from './ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from './ui/input';
 import { extractKeywords } from '@/utils/keywordAnalysis';
 import { cn } from '@/lib/utils';
-import { getSmartIcon } from '@/utils/iconSelector';
+import { getSmartIcon, getAllIcons } from '@/utils/iconSelector';
 import { format } from 'date-fns';
 import { Separator } from './ui/separator';
 import KeywordTags from './notes/KeywordTags';
@@ -18,6 +18,12 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -39,6 +45,9 @@ const Notes = () => {
     const saved = localStorage.getItem('sidebarWidth');
     return saved ? parseInt(saved) : 30; // Default to 30% if not saved
   });
+  const [sortOption, setSortOption] = useState<SortOption>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [trashedNotes, setTrashedNotes] = useState<Note[]>([]);
 
   useEffect(() => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString());
@@ -57,26 +66,34 @@ const Notes = () => {
       (snapshot) => {
         const notesData = snapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
+          modifiedAt: doc.data().modifiedAt || doc.data().createdAt // Fallback for older notes
         })) as Note[];
         
-        const sortedNotes = [...notesData].sort((a, b) => 
-          b.createdAt.seconds - a.createdAt.seconds
-        );
+        // Separate trashed and active notes
+        const trashed = notesData.filter(note => note.isDeleted);
+        const active = notesData.filter(note => !note.isDeleted);
+        
+        // Sort notes based on current sort option and direction
+        const sortedNotes = sortNotes(active, sortOption, sortDirection);
+        const sortedTrashedNotes = sortNotes(trashed, 'deletedAt', 'desc');
 
-        // Extract keywords from all notes
+        // Clean up notes older than 7 days in trash
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        sortedTrashedNotes.forEach(note => {
+          if (note.deletedAt && note.deletedAt.toDate() < sevenDaysAgo) {
+            deleteNotePermanently(note.id);
+          }
+        });
+
+        setNotes(sortedNotes);
+        setTrashedNotes(sortedTrashedNotes);
+
+        // Extract keywords from active notes only
         const extractedKeywords = extractKeywords(sortedNotes);
         setKeywords(extractedKeywords);
-
-        // Filter notes based on search query
-        const filteredNotes = searchQuery
-          ? sortedNotes.filter(note => 
-              note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              note.description.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-          : sortedNotes;
-        
-        setNotes(filteredNotes);
       },
       (error) => {
         console.error('Error fetching notes:', error);
@@ -89,7 +106,36 @@ const Notes = () => {
     );
 
     return () => unsubscribe();
-  }, [db, toast, user, searchQuery]);
+  }, [db, toast, user, sortOption, sortDirection]);
+
+  const sortNotes = (notesToSort: Note[], option: SortOption | 'deletedAt', direction: SortDirection) => {
+    return [...notesToSort].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (option) {
+        case 'title':
+          const aTitle = a.title || a.description.split(' ')[0];
+          const bTitle = b.title || b.description.split(' ')[0];
+          comparison = aTitle.localeCompare(bTitle);
+          break;
+        case 'createdAt':
+          comparison = a.createdAt.seconds - b.createdAt.seconds;
+          break;
+        case 'modifiedAt':
+          comparison = a.modifiedAt.seconds - b.modifiedAt.seconds;
+          break;
+        case 'deletedAt':
+          comparison = (a.deletedAt?.seconds || 0) - (b.deletedAt?.seconds || 0);
+          break;
+      }
+      
+      return direction === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
 
   const addNote = async () => {
     if (!user) return;
@@ -98,6 +144,7 @@ const Notes = () => {
         title: newTitle.trim() || '',
         description: newDescription.trim(),
         createdAt: Timestamp.now(),
+        modifiedAt: Timestamp.now(),
         userId: user.uid
       });
       setNewTitle('');
@@ -122,7 +169,8 @@ const Notes = () => {
       const noteRef = doc(db, 'notes', noteId);
       await updateDoc(noteRef, {
         title: newTitle.trim() || 'Untitled',
-        description: newDescription.trim()
+        description: newDescription.trim(),
+        modifiedAt: Timestamp.now()
       });
       setEditingId(null);
       toast({
@@ -141,72 +189,91 @@ const Notes = () => {
 
   const deleteNote = async (noteId: string) => {
     try {
-      await deleteDoc(doc(db, 'notes', noteId));
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        isDeleted: true,
+        deletedAt: Timestamp.now()
+      });
       toast({
-        title: "Note deleted successfully",
-        description: "The note has been removed."
+        title: "Note moved to Trashcan",
+        description: "The note has been moved to the Trashcan and will be automatically deleted after 7 days."
       });
     } catch (error) {
-      console.error('Error deleting note:', error);
+      console.error('Error moving note to trash:', error);
       toast({
         variant: "destructive",
-        title: "Error deleting note",
-        description: "Please make sure you're logged in and try again."
+        title: "Error moving note to trash",
+        description: "Please try again."
       });
     }
   };
 
-  const startEdit = (note: Note) => {
-    setEditingId(note.id);
-    setNewTitle(note.title);
-    setNewDescription(note.description);
-  };
-
-  const handleQuickNoteAdd = async () => {
-    if (!user || !quickNote.trim()) return;
-    
-    let title = '';
-    let description = quickNote.trim();
-    
-    // Check if there's a comma in the input
-    const commaIndex = quickNote.indexOf(',');
-    if (commaIndex !== -1) {
-      title = quickNote.substring(0, commaIndex).trim();
-      description = quickNote.substring(commaIndex + 1).trim();
-    }
-
+  const deleteNotePermanently = async (noteId: string) => {
     try {
-      await addDoc(collection(db, 'notes'), {
-        title,
-        description,
-        createdAt: Timestamp.now(),
-        userId: user.uid
+      await deleteDoc(doc(db, 'notes', noteId));
+    } catch (error) {
+      console.error('Error deleting note permanently:', error);
+    }
+  };
+
+  const restoreNote = async (noteId: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        isDeleted: false,
+        deletedAt: null
       });
-      setQuickNote('');
       toast({
-        title: "Note added successfully",
-        description: "Your note has been saved."
+        title: "Note restored",
+        description: "The note has been restored from the Trashcan."
       });
     } catch (error) {
-      console.error('Error adding note:', error);
+      console.error('Error restoring note:', error);
       toast({
         variant: "destructive",
-        title: "Error saving note",
-        description: "Please make sure you're logged in and try again."
+        title: "Error restoring note",
+        description: "Please try again."
       });
     }
   };
 
-  const handleKeywordClick = (keyword: string) => {
-    setSearchQuery(keyword);
+  const emptyTrash = async () => {
+    try {
+      const deletePromises = trashedNotes.map(note => deleteNotePermanently(note.id));
+      await Promise.all(deletePromises);
+      toast({
+        title: "Trashcan emptied",
+        description: "All notes in the Trashcan have been permanently deleted."
+      });
+    } catch (error) {
+      console.error('Error emptying trash:', error);
+      toast({
+        variant: "destructive",
+        title: "Error emptying Trashcan",
+        description: "Please try again."
+      });
+    }
   };
 
-  const togglePin = (noteId: string) => {
-    setPinnedNotes(prev => 
-      prev.includes(noteId) 
-        ? prev.filter(id => id !== noteId)
-        : [...prev, noteId]
-    );
+  const updateNoteIcon = async (noteId: string, iconKey: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        icon: iconKey,
+        modifiedAt: Timestamp.now()
+      });
+      toast({
+        title: "Icon updated",
+        description: "The note's icon has been updated."
+      });
+    } catch (error) {
+      console.error('Error updating note icon:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating icon",
+        description: "Please try again."
+      });
+    }
   };
 
   const formatTextWithLinks = (text: string) => {
@@ -240,26 +307,6 @@ const Notes = () => {
     });
   };
 
-  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
-    try {
-      const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, {
-        description: newContent
-      });
-      toast({
-        title: "Note updated",
-        description: "Your changes have been saved."
-      });
-    } catch (error) {
-      console.error('Error updating note:', error);
-      toast({
-        variant: "destructive",
-        title: "Error updating note",
-        description: "Please try again."
-      });
-    }
-  };
-
   const getNoteTitle = (note: Note) => {
     if (note.title && note.title.trim() !== '') {
       return note.title;
@@ -290,7 +337,6 @@ const Notes = () => {
         }
       }
     } else {
-      // Fallback for desktop or devices without share API
       await navigator.clipboard.writeText(noteText);
       toast({
         title: "Copied to clipboard",
@@ -381,6 +427,37 @@ const Notes = () => {
           className="bg-background"
         >
           <div className="h-full space-y-4 overflow-y-auto p-4">
+            {/* Sorting Options */}
+            <div className="flex justify-between items-center px-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <ArrowUpDown className="h-4 w-4" />
+                    Sort by
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setSortOption('title')}>
+                    Title {sortOption === 'title' && '✓'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOption('createdAt')}>
+                    Created Date {sortOption === 'createdAt' && '✓'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOption('modifiedAt')}>
+                    Modified Date {sortOption === 'modifiedAt' && '✓'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSortDirection}
+                className="gap-2"
+              >
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </Button>
+            </div>
+
             {/* Pinned Notes */}
             {pinnedNotes.length > 0 && (
               <div className="space-y-2">
@@ -391,15 +468,14 @@ const Notes = () => {
                 {notes
                   .filter(note => pinnedNotes.includes(note.id))
                   .map(note => {
-                    const SmartIcon = getSmartIcon(note.title);
+                    const SmartIcon = note.icon ? getSmartIcon(note.icon) : getSmartIcon(note.title);
                     return (
                       <div
                         key={note.id}
                         onClick={() => setSelectedNote(note)}
                         className={cn(
                           "flex items-center gap-2 p-2 cursor-pointer hover:bg-accent rounded-md transition-colors",
-                          selectedNote?.id === note.id && "bg-accent",
-                          "animate-fade-in"
+                          selectedNote?.id === note.id && "bg-accent"
                         )}
                       >
                         {SmartIcon && <SmartIcon className="h-4 w-4 shrink-0" />}
@@ -414,21 +490,18 @@ const Notes = () => {
 
             {/* All Notes */}
             <div className="space-y-2">
-              <h3 className="font-bold px-2 text-yellow-500">
-                All Notes
-              </h3>
+              <h3 className="font-bold px-2 text-yellow-500">All Notes</h3>
               {notes
                 .filter(note => !pinnedNotes.includes(note.id))
                 .map(note => {
-                  const SmartIcon = getSmartIcon(note.title);
+                  const SmartIcon = note.icon ? getSmartIcon(note.icon) : getSmartIcon(note.title);
                   return (
                     <div
                       key={note.id}
                       onClick={() => setSelectedNote(note)}
                       className={cn(
                         "flex items-center gap-2 p-2 cursor-pointer hover:bg-accent rounded-md transition-colors",
-                        selectedNote?.id === note.id && "bg-accent",
-                        "animate-fade-in"
+                        selectedNote?.id === note.id && "bg-accent"
                       )}
                     >
                       {SmartIcon && <SmartIcon className="h-4 w-4 shrink-0" />}
@@ -439,12 +512,48 @@ const Notes = () => {
                   );
                 })}
             </div>
+
+            {/* Trashcan */}
+            {trashedNotes.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center px-2">
+                  <h3 className="font-bold text-red-500 flex items-center gap-2">
+                    <Trash className="h-4 w-4" />
+                    Trashcan
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={emptyTrash}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    Empty
+                  </Button>
+                </div>
+                {trashedNotes.map(note => (
+                  <div
+                    key={note.id}
+                    className="flex items-center gap-2 p-2 hover:bg-accent rounded-md"
+                  >
+                    <span className="truncate flex-1">{getNoteTitle(note)}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => restoreNote(note.id)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </ResizablePanel>
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={100 - sidebarWidth}>
+        <ResizablePanel defaultSize={70}>
           <div className="p-4">
             {selectedNote ? (
               <div className="animate-fade-in space-y-4">
@@ -453,9 +562,10 @@ const Notes = () => {
                     <h2 className="text-2xl font-semibold text-yellow-500">
                       {selectedNote.title}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
-                    </p>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>Created: {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}</p>
+                      <p>Modified: {format(selectedNote.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -474,6 +584,34 @@ const Notes = () => {
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Change icon"
+                        >
+                          {selectedNote.icon ? 
+                            React.createElement(getSmartIcon(selectedNote.icon) || (() => null), { className: "h-4 w-4" })
+                            : <Plus className="h-4 w-4" />
+                          }
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {getAllIcons().map(({ icon: Icon, keywords }) => (
+                          <DropdownMenuItem
+                            key={keywords}
+                            onClick={() => updateNoteIcon(selectedNote.id, keywords)}
+                          >
+                            <div className="flex items-center gap-2">
+                              {Icon && <Icon className="h-4 w-4" />}
+                              <span className="capitalize">{keywords}</span>
+                              {selectedNote.icon === keywords && '✓'}
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -489,7 +627,7 @@ const Notes = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteNote(selectedNote.id)}
-                      title="Delete note"
+                      title="Move to trash"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
