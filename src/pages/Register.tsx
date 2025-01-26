@@ -40,7 +40,7 @@ const Register = () => {
             <FileText className="w-16 h-16 text-primary" />
           </div>
           <h1 className="text-2xl font-bold">Create Account</h1>
-          <p className="text-muted-foreground">Join Fly Quick Note</p>
+          <p className="text-muted-foreground">Join Thrive Quick Note</p>
         </div>
         
         <form onSubmit={handleRegister} className="glass-card p-8 space-y-6 rounded-lg">
