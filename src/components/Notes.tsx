@@ -502,7 +502,7 @@ const Notes = () => {
           "min-h-[calc(100vh-16rem)] rounded-lg border",
           dragActive && "border-primary border-2"
         )}
-        onDragOver={(e) => {
+        onDragOver={(e: React.DragEvent<HTMLDivElement>) => {
           e.preventDefault();
           setDragActive(true);
         }}
