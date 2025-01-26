@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Plus, Search, X, ChevronRight, ChevronLeft, Share2, Copy, Pin, Trash2, ArrowUpDown, Trash, RotateCcw } from 'lucide-react';
@@ -357,6 +357,66 @@ const Notes = () => {
       toast({
         variant: "destructive",
         title: "Error copying note",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const handleQuickNoteAdd = async () => {
+    if (!user || !quickNote.trim()) return;
+    
+    try {
+      await addDoc(collection(db, 'notes'), {
+        title: '',
+        description: quickNote.trim(),
+        createdAt: Timestamp.now(),
+        modifiedAt: Timestamp.now(),
+        userId: user.uid
+      });
+      setQuickNote('');
+      toast({
+        title: "Quick note added",
+        description: "Your note has been saved."
+      });
+    } catch (error) {
+      console.error('Error adding quick note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error saving note",
+        description: "Please make sure you're logged in and try again."
+      });
+    }
+  };
+
+  const handleKeywordClick = (keyword: string) => {
+    setSearchQuery(keyword);
+  };
+
+  const togglePin = (noteId: string) => {
+    setPinnedNotes(prev => {
+      if (prev.includes(noteId)) {
+        return prev.filter(id => id !== noteId);
+      }
+      return [...prev, noteId];
+    });
+  };
+
+  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        description: newContent,
+        modifiedAt: Timestamp.now()
+      });
+      toast({
+        title: "Note updated",
+        description: "Your changes have been saved."
+      });
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
         description: "Please try again."
       });
     }
