@@ -39,8 +39,8 @@ const Login = () => {
       </div>
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gradient">Body Thrive Chatbot</h1>
-          <p className="text-muted-foreground">Coach Sharm, MSc</p>
+          <h1 className="text-4xl font-bold text-gradient">Thrive Quick Note</h1>
+          <p className="text-red-500">Coach Sharm, MSc</p>
         </div>
         
         <form onSubmit={handleLogin} className="glass-card p-8 space-y-6 rounded-lg">
