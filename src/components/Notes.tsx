@@ -506,8 +506,11 @@ const Notes = () => {
           e.preventDefault();
           setDragActive(true);
         }}
-        onDragLeave={() => setDragActive(false)}
-        onDrop={handleDrop}
+        onDragLeave={(e: React.DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setDragActive(false);
+        }}
+        onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e)}
       >
         <ResizablePanel 
           defaultSize={sidebarWidth}
