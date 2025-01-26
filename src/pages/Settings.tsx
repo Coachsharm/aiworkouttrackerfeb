@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import NameUpdateForm from '@/components/settings/NameUpdateForm';
 import PasswordUpdateForm from '@/components/settings/PasswordUpdateForm';
+import StorageUsage from '@/components/settings/StorageUsage';
 import { useAuth } from '@/contexts/AuthContext';
 import { Settings as SettingsIcon } from 'lucide-react';
 
@@ -27,6 +28,11 @@ const Settings = () => {
       </div>
 
       <div className="space-y-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Storage</h2>
+          <StorageUsage />
+        </Card>
+
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Profile Settings</h2>
           <p className="text-muted-foreground mb-4">

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
-import { Search, X } from 'lucide-react';
+import { Search, X, GripHorizontal } from 'lucide-react';
 import { Note, SortOption, SortDirection } from './notes/types';
 import { Input } from './ui/input';
 import { extractKeywords } from '@/utils/keywordAnalysis';
-import { useToast } from './ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Separator } from './ui/separator';
 import KeywordTags from './notes/KeywordTags';
@@ -266,6 +266,11 @@ const Notes = () => {
 
   const handleShare = async (note: Note) => {
     try {
+      // Check if Web Share API is available
+      if (!navigator.share) {
+        throw new Error('Web Share API not supported');
+      }
+      
       await navigator.share({
         title: note.title || 'Shared Note',
         text: note.description,
@@ -276,10 +281,15 @@ const Notes = () => {
       });
     } catch (error) {
       console.error('Error sharing note:', error);
+      // More specific error message based on the error
+      const errorMessage = !navigator.share 
+        ? "Sharing is not supported on this device/browser"
+        : "Unable to share the note at this time";
+      
       toast({
         variant: "destructive",
-        title: "Error sharing note",
-        description: "Please try again."
+        title: "Sharing failed",
+        description: errorMessage
       });
     }
   };
@@ -359,8 +369,12 @@ const Notes = () => {
 
       <ResizablePanelGroup
         direction="horizontal"
-        className="min-h-[calc(100vh-16rem)] rounded-lg border"
+        className="min-h-[calc(100vh-16rem)] rounded-lg border relative"
       >
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 pointer-events-none flex items-center opacity-50 transition-opacity group-hover:opacity-100">
+          <GripHorizontal className="h-4 w-4" />
+        </div>
+        
         <ResizablePanel 
           defaultSize={sidebarWidth}
           onResize={(size) => setSidebarWidth(size)}

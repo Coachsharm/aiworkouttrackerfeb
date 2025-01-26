@@ -54,7 +54,11 @@ const NoteContent = ({
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:text-primary/80 underline break-all"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              window.open(href, '_blank');
+            }}
           >
             {part}
           </a>
@@ -148,6 +152,12 @@ const NoteContent = ({
           suppressContentEditableWarning
           className="prose prose-sm max-w-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md p-2"
           onBlur={(e) => onContentUpdate(note.id, e.currentTarget.textContent || '')}
+          onDoubleClick={(e) => {
+            // Only enter edit mode if not clicking a link
+            if (!(e.target as HTMLElement).closest('a')) {
+              e.currentTarget.focus();
+            }
+          }}
           dangerouslySetInnerHTML={{
             __html: formatTextWithLinks(note.description).map(part => 
               typeof part === 'string' ? part : part?.props?.href ? 
