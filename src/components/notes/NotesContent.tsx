@@ -28,7 +28,6 @@ interface NotesContentProps {
   onContentUpdate: (noteId: string, content: string) => void;
   onRestoreNote: (noteId: string) => void;
   onEmptyTrash: () => void;
-  onImageUpload: (noteId: string, file: File) => Promise<void>;
 }
 
 const NotesContent = ({
@@ -49,8 +48,7 @@ const NotesContent = ({
   onDelete,
   onContentUpdate,
   onRestoreNote,
-  onEmptyTrash,
-  onImageUpload
+  onEmptyTrash
 }: NotesContentProps) => {
   return (
     <ResizablePanelGroup
@@ -58,9 +56,7 @@ const NotesContent = ({
       className="min-h-[calc(100vh-16rem)] rounded-lg border"
     >
       <ResizablePanel 
-        defaultSize={30}
-        minSize={20}
-        maxSize={40}
+        defaultSize={sidebarWidth}
         onResize={onSidebarWidthChange}
         className="bg-background"
       >
@@ -84,18 +80,17 @@ const NotesContent = ({
         </div>
       </ResizableHandle>
 
-      <ResizablePanel defaultSize={70} minSize={60} maxSize={80}>
+      <ResizablePanel defaultSize={70}>
         {selectedNote ? (
           <NoteContent
             note={selectedNote}
-            isPinned={selectedNote.isPinned || false}
+            isPinned={selectedNote.isPinned}
             onShare={onShare}
             onCopy={onCopy}
             onIconChange={onIconChange}
             onPinToggle={onPinToggle}
             onDelete={onDelete}
             onContentUpdate={onContentUpdate}
-            onImageUpload={onImageUpload}
           />
         ) : (
           <div className="text-center text-muted-foreground p-4">
