@@ -178,13 +178,23 @@ const Notes = () => {
     return firstLine.length > 30 ? firstLine.substring(0, 30) + '...' : firstLine;
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  const handleDragOver = useCallback((event: React.DragEvent<Element>) => {
+    event.preventDefault();
+    setDragActive(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent<Element>) => {
+    event.preventDefault();
+    setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback(async (event: React.DragEvent<Element>) => {
+    event.preventDefault();
     setDragActive(false);
 
     if (!user) return;
 
-    const file = e.dataTransfer.files[0];
+    const file = event.dataTransfer.files[0];
     if (!file || !file.type.startsWith('image/')) {
       toast({
         variant: "destructive",
@@ -502,15 +512,9 @@ const Notes = () => {
           "min-h-[calc(100vh-16rem)] rounded-lg border",
           dragActive && "border-primary border-2"
         )}
-        onDragOver={(e: React.DragEvent<HTMLDivElement>) => {
-          e.preventDefault();
-          setDragActive(true);
-        }}
-        onDragLeave={(e: React.DragEvent<HTMLDivElement>) => {
-          e.preventDefault();
-          setDragActive(false);
-        }}
-        onDrop={(e: React.DragEvent<HTMLDivElement>) => handleDrop(e)}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <ResizablePanel 
           defaultSize={sidebarWidth}
