@@ -49,7 +49,7 @@ const Notes = () => {
   const addNote = async () => {
     try {
       await addDoc(collection(db, 'notes'), {
-        title: newTitle.trim() || 'Untitled',
+        title: newTitle.trim() || '',  // Changed from 'Untitled' to empty string
         description: newDescription.trim(),
         createdAt: Timestamp.now()
       });

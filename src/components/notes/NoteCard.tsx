@@ -46,7 +46,7 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
     <Card className="p-4">
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
-          {note.title && (
+          {note.title && note.title.trim() !== '' && (
             <h3 className="text-lg font-medium text-yellow-500">
               {note.title}
             </h3>
