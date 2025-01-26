@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { FileText, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,12 +33,19 @@ const Register = () => {
     setLoading(true);
     
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update user profile with name
+      await updateProfile(userCredential.user, {
+        displayName: name
+      });
+
       navigate('/dashboard');
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Error",
-        description: "Failed to create account",
+        description: "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -47,7 +55,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8 animate-fadeIn mt-[-8vh]">
+      <div className="w-full max-w-md space-y-8 animate-fadeIn mt-[-16vh]">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
             <div className="relative w-32 h-32 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
@@ -59,15 +67,26 @@ const Register = () => {
           <p className="text-muted-foreground">Join Thrive Quick Note</p>
         </div>
         
-        <form onSubmit={handleRegister} className="glass-card p-8 space-y-6 rounded-lg">
+        <form onSubmit={handleRegister} className="glass-card p-8 space-y-6 rounded-lg bg-white/5 dark:bg-black/5">
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input-style bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
+                required
+              />
+            </div>
+
             <div className="space-y-2">
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
+                className="input-style bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
                 required
               />
             </div>
@@ -78,7 +97,7 @@ const Register = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
+                className="input-style bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
                 required
               />
               <button
@@ -96,7 +115,7 @@ const Register = () => {
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
+                className="input-style bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
                 required
               />
               <button

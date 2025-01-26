@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Notes from '@/components/Notes';
 import { Separator } from '@/components/ui/separator';
-import { FileText } from 'lucide-react';
+import { FileText, Settings } from 'lucide-react';
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -25,6 +25,9 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // Clear stored credentials on logout
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userPassword');
       navigate('/login');
     } catch (error) {
       console.error('Failed to log out:', error);
@@ -38,11 +41,18 @@ const Dashboard = () => {
           <FileText className="w-16 h-16 text-primary" />
           <div>
             <p className="text-xl text-muted-foreground">Welcome back</p>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
+            <p className="text-sm text-muted-foreground">
+              {user?.displayName || user?.email}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <Link to="/settings">
+            <Button variant="outline" size="icon">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </Link>
           <Button onClick={handleLogout} variant="outline">
             Logout
           </Button>

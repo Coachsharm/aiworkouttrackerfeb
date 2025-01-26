@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -13,20 +13,43 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check for stored credentials
+    const storedEmail = localStorage.getItem('userEmail');
+    const storedPassword = localStorage.getItem('userPassword');
+    if (storedEmail && storedPassword) {
+      setEmail(storedEmail);
+      setPassword(storedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Store credentials if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userPassword', password);
+      } else {
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userPassword');
+      }
+
       navigate('/dashboard');
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Error",
-        description: "Invalid email or password",
+        description: "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -39,7 +62,7 @@ const Login = () => {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-md space-y-8 animate-fade-in mt-[-8vh]">
+      <div className="w-full max-w-md space-y-8 animate-fade-in mt-[-16vh]">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center mb-6 animate-scale-in">
             <div className="relative w-48 h-48 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
@@ -51,7 +74,7 @@ const Login = () => {
           <p className="text-red-500 font-semibold">Coach Sharm, MSc</p>
         </div>
         
-        <form onSubmit={handleLogin} className="glass-card p-8 space-y-6 rounded-lg animate-scale-in">
+        <form onSubmit={handleLogin} className="glass-card p-8 space-y-6 rounded-lg animate-scale-in bg-white/5 dark:bg-black/5 backdrop-blur-sm">
           <div className="space-y-4">
             <div className="space-y-2">
               <Input
@@ -59,7 +82,7 @@ const Login = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
+                className="input-style bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
                 required
               />
             </div>
@@ -70,16 +93,36 @@ const Login = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
+                className="input-style bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-muted-foreground">
+                  Remember me
+                </label>
+              </div>
+              <div className="text-sm">
+                <Link to="/forgot-password" className="text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
           </div>
 
