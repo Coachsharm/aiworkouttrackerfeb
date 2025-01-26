@@ -33,17 +33,17 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background via-background/95 to-background/90">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-8 animate-fade-in">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Body Thrive Chatbot</h1>
+          <h1 className="text-4xl font-bold text-gradient">Body Thrive Chatbot</h1>
           <p className="text-muted-foreground">Coach Sharm, MSc</p>
         </div>
         
-        <form onSubmit={handleLogin} className="card-gradient p-8 space-y-6 rounded-lg shadow-lg">
+        <form onSubmit={handleLogin} className="glass-card p-8 space-y-6 rounded-lg">
           <div className="space-y-4">
             <div className="space-y-2">
               <Input
@@ -51,7 +51,7 @@ const Login = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-background/50 border-input hover:bg-background/80 transition-colors"
+                className="input-style hover-scale"
                 required
               />
             </div>
@@ -62,7 +62,7 @@ const Login = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-background/50 border-input hover:bg-background/80 transition-colors"
+                className="input-style hover-scale"
                 required
               />
             </div>
@@ -70,7 +70,7 @@ const Login = () => {
 
           <Button
             type="submit"
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            className="w-full button-style hover-scale"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
