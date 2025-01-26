@@ -11,6 +11,11 @@ export interface Note {
   isDeleted?: boolean;
   deletedAt?: Timestamp;
   isPinned?: boolean;
+  image?: {
+    url: string;
+    name: string;
+    size: number;
+  };
 }
 
 export type SortOption = 'title' | 'createdAt' | 'modifiedAt';
