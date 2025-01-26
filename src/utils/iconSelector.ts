@@ -1,7 +1,7 @@
 import { LucideIcon, 
   Tv, IceCream, Music, Book, Coffee, Car, Heart, Star, Bell, Cloud,
-  Apple, Calendar, User, Wallet, Wrench, AlarmClock, Album, Ambulance,
-  Archive, AccessibilityIcon, ArrowDown, Accessibility, Plane, Train,
+  Apple, Calendar, User, Wallet, Wrench, Album, Ambulance,
+  Archive, Accessibility, ArrowDown, Plane, Train,
   Bus, Bike, Ship, Rocket, Home, Building, School, Hospital,
   Store, Hotel, Theater, Mountain, Sun, Moon, Wind, Brain,
   Camera, Phone, Laptop, Monitor, Watch, Printer, Router, Battery, 
@@ -9,32 +9,31 @@ import { LucideIcon,
   Mail, Send, Inbox, Trash, Download, Upload, Share, Link, Search, 
   Eye, EyeOff, Edit, Copy, Pause, Pin, Play, Forward, Radio, File, 
   Folder, Tag, Flag, Check, X, Circle, Square, Triangle, Diamond, 
-  Hexagon, Octagon, Pentagon, Plus, Minus, DollarSign, Euro, 
+  Hexagon, Octagon, Pentagon, Plus, Minus, Euro, 
   CreditCard, BellRing, Bookmark, Box, Briefcase, Calculator,
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock,
   Code, Cog, Command, Compass, Contact, Database, FileText,
   Filter, Fingerprint, Fish, FlaskConical, Flower, Focus, Frame,
   Gamepad2, Gift, Globe, GraduationCap, Grid, HandMetal, 
-  HardDrive, Hash, Headphones, Heart, HelpCircle, History,
-  Home, Image, Inbox, Info, Key, Keyboard, Lamp, Languages,
+  HardDrive, Hash, Headphones, HelpCircle, History,
+  Image, Info, Keyboard, Lamp, Languages,
   Layers, Layout, Library, Lightbulb, Link2, List, Loader,
-  Location, Lock, LogIn, LogOut, Map, MapPin, Maximize,
-  Medal, MessageCircle, MessageSquare, Mic, Monitor, Moon,
-  MoreHorizontal, MoreVertical, Mountain, Mouse, Music,
-  Navigation, Network, Newspaper, NotebookPen, Package,
-  Palette, PanelLeft, PanelRight, Paperclip, Pencil, Phone,
-  PieChart, Pizza, Plane, Plant, Play, Plug, Plus, Pointer,
-  Power, Printer, Puzzle, QrCode, Quote, Radio, Redo, 
-  RefreshCw, Reply, Rewind, Rocket, Rss, Scissors, Search,
-  Send, Server, Settings, Share, Shield, ShieldCheck,
+  LogIn, LogOut, Map, MapPin, Maximize,
+  Medal, MessageCircle, MessageSquare, Mic,
+  MoreHorizontal, MoreVertical, Mouse,
+  Navigation, Network, Newspaper, Package,
+  Palette, PanelLeft, PanelRight, Paperclip, Pencil,
+  PieChart, Pizza, Plug, Pointer,
+  Puzzle, QrCode, Quote, Redo, 
+  RefreshCw, Reply, Rewind, Rss, Scissors,
+  Server, Shield, ShieldCheck,
   ShieldQuestion, ShoppingBag, ShoppingCart, Shuffle,
-  Sidebar, Signal, Sliders, Smartphone, Smile, Speaker,
-  Star, StopCircle, Sun, Sunrise, Sunset, Table, Tablet,
-  Tag, Target, Terminal, Thermometer, ThumbsDown, ThumbsUp,
-  Ticket, Timer, Tool, Trash, Trash2, Trophy, Truck, Tv,
-  Type, Umbrella, Undo, Upload, User, UserCheck, UserMinus,
-  UserPlus, Users, Video, ViewIcon, Wallet, Watch, Wifi,
-  Wind, Wrench, ZoomIn, ZoomOut } from 'lucide-react';
+  Sidebar, Sliders, Smartphone, Smile, Speaker,
+  StopCircle, Sunrise, Sunset, Table, Tablet,
+  Target, Terminal, Thermometer, ThumbsDown, ThumbsUp,
+  Ticket, Timer, Trophy, Type, Umbrella, Undo,
+  UserCheck, UserMinus, UserPlus, Users, Video, ViewIcon,
+  ZoomIn, ZoomOut } from 'lucide-react';
 
 interface IconMatch {
   keywords: string[];
@@ -65,6 +64,8 @@ const iconMatches: IconMatch[] = [
   { keywords: ['music', 'song', 'playlist', 'audio', 'concert'], icon: Music },
   { keywords: ['book', 'read', 'novel', 'study', 'textbook'], icon: Book },
   { keywords: ['album', 'photo', 'picture', 'image'], icon: Album },
+  { keywords: ['video', 'film', 'camera', 'recording'], icon: Video },
+  { keywords: ['game', 'gaming', 'controller', 'play'], icon: Gamepad2 },
   
   // Food & Drink
   { keywords: ['ice cream', 'icecream', 'dessert', 'frozen', 'gelato'], icon: IceCream },
@@ -81,7 +82,6 @@ const iconMatches: IconMatch[] = [
   { keywords: ['bike', 'bicycle', 'cycling'], icon: Bike },
   { keywords: ['ship', 'boat', 'cruise', 'sail'], icon: Ship },
   { keywords: ['rocket', 'space', 'launch'], icon: Rocket },
-  { keywords: ['truck', 'delivery', 'shipping'], icon: Truck },
   
   // Buildings & Places
   { keywords: ['home', 'house', 'apartment'], icon: Home },
@@ -97,7 +97,6 @@ const iconMatches: IconMatch[] = [
   { keywords: ['cloud', 'weather', 'sky'], icon: Cloud },
   { keywords: ['wind', 'breeze', 'weather'], icon: Wind },
   { keywords: ['mountain', 'peak', 'hill'], icon: Mountain },
-  { keywords: ['plant', 'tree', 'nature'], icon: Plant },
   
   // Technology
   { keywords: ['camera', 'photo', 'picture'], icon: Camera },
@@ -125,10 +124,9 @@ const iconMatches: IconMatch[] = [
   { keywords: ['tag', 'label', 'category'], icon: Tag },
   
   // Payment & Finance
-  { keywords: ['dollar', 'money', 'cash', 'payment'], icon: DollarSign },
-  { keywords: ['euro', 'currency', 'money'], icon: Euro },
   { keywords: ['credit', 'card', 'payment'], icon: CreditCard },
   { keywords: ['wallet', 'money', 'payment'], icon: Wallet },
+  { keywords: ['euro', 'currency', 'money'], icon: Euro },
   
   // Generic Icons
   { keywords: ['check', 'done', 'complete', 'success'], icon: Check },
