@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Button } from './ui/button';
-import { Plus, Search, X, Share2, Copy, Pin, Trash2, Upload } from 'lucide-react';
+import { Plus, Search, X, ChevronRight, ChevronLeft, Share2, Copy, Pin, Trash2 } from 'lucide-react';
 import { Note } from './notes/types';
 import AddNoteForm from './notes/AddNoteForm';
 import { useToast } from './ui/use-toast';
@@ -14,10 +13,8 @@ import { getSmartIcon } from '@/utils/iconSelector';
 import { format } from 'date-fns';
 import { Separator } from './ui/separator';
 import KeywordTags from './notes/KeywordTags';
-import { ResizeHandle } from './notes/ResizeHandle';
-import { SortControls } from './notes/SortControls';
-import { IconSelector } from './notes/IconSelector';
 import {
+  ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
@@ -43,13 +40,6 @@ const Notes = () => {
     return saved ? parseInt(saved) : 30; // Default to 30% if not saved
   });
 
-  const [sortField, setSortField] = useState<'title' | 'createdAt' | 'modifiedAt'>('createdAt');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [storageUsed, setStorageUsed] = useState(0);
-  const storage = getStorage();
-
   useEffect(() => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString());
   }, [sidebarWidth]);
@@ -59,8 +49,7 @@ const Notes = () => {
 
     const notesQuery = query(
       collection(db, 'notes'),
-      where('userId', '==', user.uid),
-      where('isDeleted', '==', false)
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
@@ -71,20 +60,15 @@ const Notes = () => {
           ...doc.data()
         })) as Note[];
         
-        const sortedNotes = [...notesData].sort((a, b) => {
-          if (sortField === 'title') {
-            return sortDirection === 'asc' 
-              ? (a.title || '').localeCompare(b.title || '')
-              : (b.title || '').localeCompare(a.title || '');
-          }
-          return sortDirection === 'asc'
-            ? a[sortField].seconds - b[sortField].seconds
-            : b[sortField].seconds - a[sortField].seconds;
-        });
+        const sortedNotes = [...notesData].sort((a, b) => 
+          b.createdAt.seconds - a.createdAt.seconds
+        );
 
+        // Extract keywords from all notes
         const extractedKeywords = extractKeywords(sortedNotes);
         setKeywords(extractedKeywords);
 
+        // Filter notes based on search query
         const filteredNotes = searchQuery
           ? sortedNotes.filter(note => 
               note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -93,11 +77,6 @@ const Notes = () => {
           : sortedNotes;
         
         setNotes(filteredNotes);
-
-        const totalSize = notesData.reduce((acc, note) => {
-          return acc + (note.imageUrl ? 0.5 : 0); // 0.5MB per image
-        }, 0);
-        setStorageUsed(totalSize);
       },
       (error) => {
         console.error('Error fetching notes:', error);
@@ -109,59 +88,111 @@ const Notes = () => {
       }
     );
 
-    const deletedNotesQuery = query(
-      collection(db, 'notes'),
-      where('userId', '==', user.uid),
-      where('isDeleted', '==', true)
-    );
+    return () => unsubscribe();
+  }, [db, toast, user, searchQuery]);
 
-    const deletedUnsubscribe = onSnapshot(deletedNotesQuery, (snapshot) => {
-      const deletedNotesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Note[];
-
-      deletedNotesData.forEach(note => {
-        if (note.deletedAt && 
-            (Date.now() - note.deletedAt.toDate().getTime()) > 7 * 24 * 60 * 60 * 1000) {
-          deleteNote(note.id, true);
-        }
+  const addNote = async () => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'notes'), {
+        title: newTitle.trim() || '',
+        description: newDescription.trim(),
+        createdAt: Timestamp.now(),
+        userId: user.uid
       });
-    });
+      setNewTitle('');
+      setNewDescription('');
+      setIsAdding(false);
+      toast({
+        title: "Note added successfully",
+        description: "Your note has been saved."
+      });
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error saving note",
+        description: "Please make sure you're logged in and try again."
+      });
+    }
+  };
 
-    return () => {
-      unsubscribe();
-      deletedUnsubscribe();
-    };
-  }, [db, toast, user, searchQuery, sortField, sortDirection]);
+  const updateNote = async (noteId: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        title: newTitle.trim() || 'Untitled',
+        description: newDescription.trim()
+      });
+      setEditingId(null);
+      toast({
+        title: "Note updated successfully",
+        description: "Your changes have been saved."
+      });
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
+        description: "Please make sure you're logged in and try again."
+      });
+    }
+  };
+
+  const deleteNote = async (noteId: string) => {
+    try {
+      await deleteDoc(doc(db, 'notes', noteId));
+      toast({
+        title: "Note deleted successfully",
+        description: "The note has been removed."
+      });
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error deleting note",
+        description: "Please make sure you're logged in and try again."
+      });
+    }
+  };
+
+  const startEdit = (note: Note) => {
+    setEditingId(note.id);
+    setNewTitle(note.title);
+    setNewDescription(note.description);
+  };
 
   const handleQuickNoteAdd = async () => {
     if (!user || !quickNote.trim()) return;
+    
+    let title = '';
+    let description = quickNote.trim();
+    
+    // Check if there's a comma in the input
+    const commaIndex = quickNote.indexOf(',');
+    if (commaIndex !== -1) {
+      title = quickNote.substring(0, commaIndex).trim();
+      description = quickNote.substring(commaIndex + 1).trim();
+    }
 
     try {
-      const titles = quickNote.split(',').map(title => title.trim());
-      
-      for (const title of titles) {
-        await addDoc(collection(db, 'notes'), {
-          title,
-          description: '',
-          createdAt: Timestamp.now(),
-          modifiedAt: Timestamp.now(),
-          userId: user.uid,
-          isDeleted: false
-        });
-      }
-      
+      await addDoc(collection(db, 'notes'), {
+        title,
+        description,
+        createdAt: Timestamp.now(),
+        userId: user.uid
+      });
       setQuickNote('');
       toast({
-        title: "Notes added",
-        description: "Your notes have been created successfully."
+        title: "Note added successfully",
+        description: "Your note has been saved."
       });
     } catch (error) {
+      console.error('Error adding note:', error);
       toast({
         variant: "destructive",
-        title: "Error adding notes",
-        description: "Please try again."
+        title: "Error saving note",
+        description: "Please make sure you're logged in and try again."
       });
     }
   };
@@ -170,162 +201,12 @@ const Notes = () => {
     setSearchQuery(keyword);
   };
 
-  const getNoteTitle = (note: Note) => {
-    if (note.title && note.title.trim() !== '') {
-      return note.title;
-    }
-    const firstLine = note.description.split('\n')[0];
-    return firstLine.length > 30 ? firstLine.substring(0, 30) + '...' : firstLine;
-  };
-
-  const handleDragOver = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    setDragActive(true);
-  }, []);
-
-  const handleDragLeave = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    setDragActive(false);
-  }, []);
-
-  const handleDrop = useCallback(async (event: DragEvent) => {
-    event.preventDefault();
-    setDragActive(false);
-
-    if (!user) return;
-
-    const file = event.dataTransfer?.files[0];
-    if (!file || !file.type.startsWith('image/')) {
-      toast({
-        variant: "destructive",
-        title: "Invalid file type",
-        description: "Please upload an image file."
-      });
-      return;
-    }
-
-    if (file.size > 0.5 * 1024 * 1024) { // 0.5MB
-      toast({
-        variant: "destructive",
-        title: "File too large",
-        description: "Image size must be less than 0.5MB."
-      });
-      return;
-    }
-
-    if (storageUsed + 0.5 > 500) { // 500MB limit
-      toast({
-        variant: "destructive",
-        title: "Storage limit reached",
-        description: "You have reached the 500MB storage limit."
-      });
-      return;
-    }
-
-    try {
-      const storageRef = ref(storage, `notes/${user.uid}/${file.name}`);
-      await uploadBytes(storageRef, file);
-      const imageUrl = await getDownloadURL(storageRef);
-
-      if (selectedNote) {
-        const noteRef = doc(db, 'notes', selectedNote.id);
-        await updateDoc(noteRef, {
-          imageUrl,
-          modifiedAt: Timestamp.now()
-        });
-        toast({
-          title: "Image uploaded",
-          description: "The image has been added to your note."
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        variant: "destructive",
-        title: "Error uploading image",
-        description: "Please try again."
-      });
-    }
-  }, [user, selectedNote, storage, storageUsed]);
-
-  const handleShare = async (note: Note) => {
-    const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
-    
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: note.title || 'Shared Note',
-          text: noteText,
-        });
-        toast({
-          title: "Shared successfully",
-          description: "The note has been shared."
-        });
-      } else {
-        await navigator.clipboard.writeText(noteText);
-        toast({
-          title: "Copied to clipboard",
-          description: "The note has been copied to your clipboard."
-        });
-      }
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
-        toast({
-          variant: "destructive",
-          title: "Error sharing note",
-          description: "Please try again."
-        });
-      }
-    }
-  };
-
-  const handleIconSelect = async (noteId: string, icon: string) => {
-    try {
-      const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, {
-        selectedIcon: icon,
-        modifiedAt: Timestamp.now()
-      });
-      toast({
-        title: "Icon updated",
-        description: "The note icon has been updated."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error updating icon",
-        description: "Please try again."
-      });
-    }
-  };
-
-  const deleteNote = async (noteId: string, permanent: boolean = false) => {
-    try {
-      if (permanent) {
-        await deleteDoc(doc(db, 'notes', noteId));
-        toast({
-          title: "Note permanently deleted",
-          description: "The note has been permanently removed."
-        });
-      } else {
-        const noteRef = doc(db, 'notes', noteId);
-        await updateDoc(noteRef, {
-          isDeleted: true,
-          deletedAt: Timestamp.now()
-        });
-        toast({
-          title: "Note moved to trash",
-          description: "The note will be permanently deleted in 7 days."
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting note:', error);
-      toast({
-        variant: "destructive",
-        title: "Error deleting note",
-        description: "Please try again."
-      });
-    }
+  const togglePin = (noteId: string) => {
+    setPinnedNotes(prev => 
+      prev.includes(noteId) 
+        ? prev.filter(id => id !== noteId)
+        : [...prev, noteId]
+    );
   };
 
   const formatTextWithLinks = (text: string) => {
@@ -349,11 +230,7 @@ const Notes = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:text-primary/80 underline break-all"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              window.open(href, '_blank');
-            }}
+            onClick={(e) => e.stopPropagation()}
           >
             {part}
           </a>
@@ -363,9 +240,68 @@ const Notes = () => {
     });
   };
 
-  const handleCopy = async (note: Note) => {
+  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
     try {
-      const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        description: newContent
+      });
+      toast({
+        title: "Note updated",
+        description: "Your changes have been saved."
+      });
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const getNoteTitle = (note: Note) => {
+    if (note.title && note.title.trim() !== '') {
+      return note.title;
+    }
+    return note.description.split(' ').slice(0, 3).join(' ') + '...';
+  };
+
+  const handleShare = async (note: Note) => {
+    const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: note.title || 'Shared Note',
+          text: noteText,
+        });
+        toast({
+          title: "Shared successfully",
+          description: "The note has been shared."
+        });
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          toast({
+            variant: "destructive",
+            title: "Error sharing note",
+            description: "Please try again."
+          });
+        }
+      }
+    } else {
+      // Fallback for desktop or devices without share API
+      await navigator.clipboard.writeText(noteText);
+      toast({
+        title: "Copied to clipboard",
+        description: "The note has been copied to your clipboard."
+      });
+    }
+  };
+
+  const handleCopy = async (note: Note) => {
+    const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
+    try {
       await navigator.clipboard.writeText(noteText);
       toast({
         title: "Copied to clipboard",
@@ -375,77 +311,6 @@ const Notes = () => {
       toast({
         variant: "destructive",
         title: "Error copying note",
-        description: "Please try again."
-      });
-    }
-  };
-
-  const togglePin = async (noteId: string) => {
-    try {
-      if (pinnedNotes.includes(noteId)) {
-        setPinnedNotes(prev => prev.filter(id => id !== noteId));
-      } else {
-        setPinnedNotes(prev => [...prev, noteId]);
-      }
-      toast({
-        title: pinnedNotes.includes(noteId) ? "Note unpinned" : "Note pinned",
-        description: pinnedNotes.includes(noteId) 
-          ? "The note has been unpinned." 
-          : "The note has been pinned to the top."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error updating pin status",
-        description: "Please try again."
-      });
-    }
-  };
-
-  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
-    try {
-      const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, {
-        description: newContent,
-        modifiedAt: Timestamp.now()
-      });
-      toast({
-        title: "Note updated",
-        description: "Your changes have been saved."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error updating note",
-        description: "Please try again."
-      });
-    }
-  };
-
-  const addNote = async () => {
-    if (!user) return;
-
-    try {
-      await addDoc(collection(db, 'notes'), {
-        title: newTitle,
-        description: newDescription,
-        createdAt: Timestamp.now(),
-        modifiedAt: Timestamp.now(),
-        userId: user.uid,
-        isDeleted: false
-      });
-
-      setNewTitle('');
-      setNewDescription('');
-      setIsAdding(false);
-      toast({
-        title: "Note added",
-        description: "Your note has been created successfully."
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error adding note",
         description: "Please try again."
       });
     }
@@ -508,13 +373,7 @@ const Notes = () => {
 
       <ResizablePanelGroup
         direction="horizontal"
-        className={cn(
-          "min-h-[calc(100vh-16rem)] rounded-lg border",
-          dragActive && "border-primary border-2"
-        )}
-        onDragOver={handleDragOver as any}
-        onDragLeave={handleDragLeave as any}
-        onDrop={handleDrop as any}
+        className="min-h-[calc(100vh-16rem)] rounded-lg border"
       >
         <ResizablePanel 
           defaultSize={sidebarWidth}
@@ -522,18 +381,6 @@ const Notes = () => {
           className="bg-background"
         >
           <div className="h-full space-y-4 overflow-y-auto p-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold px-2 text-yellow-500">Notes</h3>
-              <SortControls onSort={(field) => {
-                if (field === sortField) {
-                  setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-                } else {
-                  setSortField(field);
-                  setSortDirection('desc');
-                }
-              }} />
-            </div>
-
             {/* Pinned Notes */}
             {pinnedNotes.length > 0 && (
               <div className="space-y-2">
@@ -595,7 +442,7 @@ const Notes = () => {
           </div>
         </ResizablePanel>
 
-        <ResizeHandle />
+        <ResizableHandle />
 
         <ResizablePanel defaultSize={100 - sidebarWidth}>
           <div className="p-4">
@@ -607,40 +454,10 @@ const Notes = () => {
                       {selectedNote.title}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      Created: {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
+                      {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
                     </p>
-                    {selectedNote.modifiedAt && (
-                      <p className="text-sm text-muted-foreground">
-                        Modified: {format(selectedNote.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
-                      </p>
-                    )}
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = async (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) {
-                            const event = new DragEvent('drop', { dataTransfer: new DataTransfer() });
-                            event.dataTransfer?.items.add(file);
-                            await handleDrop(event);
-                          }
-                        };
-                        input.click();
-                      }}
-                      title="Upload image"
-                    >
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                    <IconSelector
-                      selectedIcon={selectedNote.selectedIcon || ''}
-                      onSelectIcon={(icon) => handleIconSelect(selectedNote.id, icon)}
-                    />
                     <Button
                       variant="ghost"
                       size="icon"
@@ -672,23 +489,12 @@ const Notes = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteNote(selectedNote.id)}
-                      title="Move to trash"
+                      title="Delete note"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-
-                {selectedNote.imageUrl && (
-                  <div className="relative w-full max-w-md mx-auto">
-                    <img
-                      src={selectedNote.imageUrl}
-                      alt="Note attachment"
-                      className="w-full h-auto rounded-lg shadow-md"
-                    />
-                  </div>
-                )}
-
                 <div
                   contentEditable
                   suppressContentEditableWarning

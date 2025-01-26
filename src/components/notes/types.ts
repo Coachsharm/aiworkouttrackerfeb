@@ -5,10 +5,5 @@ export interface Note {
   title: string;
   description: string;
   createdAt: Timestamp;
-  modifiedAt: Timestamp;
   userId: string;
-  imageUrl?: string;
-  isDeleted?: boolean;
-  deletedAt?: Timestamp;
-  selectedIcon?: string;
 }
