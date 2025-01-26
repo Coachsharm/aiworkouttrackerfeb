@@ -53,10 +53,9 @@ const NoteContent = ({
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:text-primary/80 underline break-all"
+            className="text-blue-500 hover:text-blue-600 underline break-all"
             onClick={(e) => {
               e.stopPropagation();
-              e.preventDefault();
               window.open(href, '_blank');
             }}
           >
@@ -161,7 +160,7 @@ const NoteContent = ({
           dangerouslySetInnerHTML={{
             __html: formatTextWithLinks(note.description).map(part => 
               typeof part === 'string' ? part : part?.props?.href ? 
-                `<a href="${part.props.href}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline break-all">${part.props.children}</a>` : 
+                `<a href="${part.props.href}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-600 underline break-all">${part.props.children}</a>` : 
                 ''
             ).join('')
           }}
