@@ -1,9 +1,10 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { Share2, Copy, Pin, Trash2 } from 'lucide-react';
+import { Share2, Copy, Pin, Trash2, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Note } from './types';
 import { getSmartIcon, getAllIcons } from '@/utils/iconSelector';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,

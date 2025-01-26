@@ -264,6 +264,64 @@ const Notes = () => {
     setSearchQuery(keyword);
   };
 
+  const handleShare = async (note: Note) => {
+    try {
+      await navigator.share({
+        title: note.title || 'Shared Note',
+        text: note.description,
+      });
+      toast({
+        title: "Note shared successfully",
+        description: "The note has been shared."
+      });
+    } catch (error) {
+      console.error('Error sharing note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error sharing note",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const handleCopy = async (note: Note) => {
+    try {
+      await navigator.clipboard.writeText(note.description);
+      toast({
+        title: "Note copied",
+        description: "The note has been copied to clipboard."
+      });
+    } catch (error) {
+      console.error('Error copying note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error copying note",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const handleNoteContentUpdate = async (noteId: string, content: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        description: content,
+        modifiedAt: Timestamp.now()
+      });
+      toast({
+        title: "Note updated",
+        description: "Your changes have been saved."
+      });
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
+        description: "Please try again."
+      });
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
       <div className="space-y-4">
