@@ -51,7 +51,12 @@ const Notes = () => {
         ...doc.data()
       })) as Note[];
       
-      setNotes(notesData.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds));
+      // Sort notes by timestamp
+      const sortedNotes = [...notesData].sort((a, b) => 
+        b.createdAt.seconds - a.createdAt.seconds
+      );
+      
+      setNotes(sortedNotes);
     });
 
     return () => unsubscribe();
