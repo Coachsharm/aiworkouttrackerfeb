@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import Notes from '@/components/Notes';
 import { Separator } from '@/components/ui/separator';
 import { FileText, Settings } from 'lucide-react';
+import MotivationalQuote from '@/components/MotivationalQuote';
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -63,6 +64,9 @@ const Dashboard = () => {
               second: '2-digit'
             })}
           </time>
+          <div className="mt-4 mb-8">
+            <MotivationalQuote />
+          </div>
         </div>
 
         <Separator className="my-8" />
