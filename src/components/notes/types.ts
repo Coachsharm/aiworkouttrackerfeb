@@ -5,4 +5,5 @@ export interface Note {
   title: string;
   description: string;
   createdAt: Timestamp;
+  userId: string;
 }

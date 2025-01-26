@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Plus } from 'lucide-react';
 import { Note } from './notes/types';
@@ -7,6 +7,7 @@ import NoteCard from './notes/NoteCard';
 import AddNoteForm from './notes/AddNoteForm';
 import EditNoteForm from './notes/EditNoteForm';
 import { useToast } from './ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -15,12 +16,19 @@ const Notes = () => {
   const [newDescription, setNewDescription] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const { toast } = useToast();
-
+  const { user } = useAuth();
   const db = getFirestore();
 
   useEffect(() => {
+    if (!user) return;
+
+    const notesQuery = query(
+      collection(db, 'notes'),
+      where('userId', '==', user.uid)
+    );
+
     const unsubscribe = onSnapshot(
-      collection(db, 'notes'), 
+      notesQuery,
       (snapshot) => {
         const notesData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -44,14 +52,16 @@ const Notes = () => {
     );
 
     return () => unsubscribe();
-  }, [db, toast]);
+  }, [db, toast, user]);
 
   const addNote = async () => {
+    if (!user) return;
     try {
       await addDoc(collection(db, 'notes'), {
-        title: newTitle.trim() || '',  // Changed from 'Untitled' to empty string
+        title: newTitle.trim() || '',
         description: newDescription.trim(),
-        createdAt: Timestamp.now()
+        createdAt: Timestamp.now(),
+        userId: user.uid
       });
       setNewTitle('');
       setNewDescription('');

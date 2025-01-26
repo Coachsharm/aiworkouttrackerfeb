@@ -42,19 +42,22 @@ const formatTextWithLinks = (text: string) => {
 
 const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
   return (
-    <Card className="p-4">
+    <Card className="p-4 space-y-4">
       <div className="flex justify-between items-start">
-        <div className="flex flex-col">
+        <div className="flex-1">
           {note.title && note.title.trim() !== '' && (
-            <h3 className="text-lg font-medium dark:text-amber-400 text-amber-600">
+            <h3 className="text-lg font-medium dark:text-amber-400 text-amber-600 mb-2">
               {note.title}
             </h3>
           )}
+          <p className="text-muted-foreground whitespace-pre-wrap break-words mb-2">
+            {formatTextWithLinks(note.description)}
+          </p>
           <p className="text-sm text-muted-foreground">
             {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 ml-4">
           <Button
             variant="ghost"
             size="icon"
@@ -71,9 +74,6 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
           </Button>
         </div>
       </div>
-      <p className="mt-2 text-muted-foreground whitespace-pre-wrap break-words">
-        {formatTextWithLinks(note.description)}
-      </p>
     </Card>
   );
 };
