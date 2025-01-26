@@ -6,6 +6,7 @@ import { Note } from './notes/types';
 import NoteCard from './notes/NoteCard';
 import AddNoteForm from './notes/AddNoteForm';
 import EditNoteForm from './notes/EditNoteForm';
+import { useToast } from './ui/use-toast';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -13,26 +14,37 @@ const Notes = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const db = getFirestore();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'notes'), (snapshot) => {
-      const notesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Note[];
-      
-      // Sort notes by timestamp
-      const sortedNotes = [...notesData].sort((a, b) => 
-        b.createdAt.seconds - a.createdAt.seconds
-      );
-      
-      setNotes(sortedNotes);
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, 'notes'), 
+      (snapshot) => {
+        const notesData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Note[];
+        
+        const sortedNotes = [...notesData].sort((a, b) => 
+          b.createdAt.seconds - a.createdAt.seconds
+        );
+        
+        setNotes(sortedNotes);
+      },
+      (error) => {
+        console.error('Error fetching notes:', error);
+        toast({
+          variant: "destructive",
+          title: "Error fetching notes",
+          description: "Please make sure you're logged in and try again."
+        });
+      }
+    );
 
     return () => unsubscribe();
-  }, [db]);
+  }, [db, toast]);
 
   const addNote = async () => {
     try {
@@ -44,8 +56,17 @@ const Notes = () => {
       setNewTitle('');
       setNewDescription('');
       setIsAdding(false);
+      toast({
+        title: "Note added successfully",
+        description: "Your note has been saved."
+      });
     } catch (error) {
       console.error('Error adding note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error saving note",
+        description: "Please make sure you're logged in and try again."
+      });
     }
   };
 
@@ -57,16 +78,34 @@ const Notes = () => {
         description: newDescription.trim()
       });
       setEditingId(null);
+      toast({
+        title: "Note updated successfully",
+        description: "Your changes have been saved."
+      });
     } catch (error) {
       console.error('Error updating note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
+        description: "Please make sure you're logged in and try again."
+      });
     }
   };
 
   const deleteNote = async (noteId: string) => {
     try {
       await deleteDoc(doc(db, 'notes', noteId));
+      toast({
+        title: "Note deleted successfully",
+        description: "The note has been removed."
+      });
     } catch (error) {
       console.error('Error deleting note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error deleting note",
+        description: "Please make sure you're logged in and try again."
+      });
     }
   };
 
