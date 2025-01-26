@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { FileText } from 'lucide-react';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -35,8 +36,11 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8 animate-fadeIn">
         <div className="text-center space-y-2">
+          <div className="flex justify-center mb-4">
+            <FileText className="w-16 h-16 text-primary" />
+          </div>
           <h1 className="text-2xl font-bold">Create Account</h1>
-          <p className="text-muted-foreground">Join Body Thrive Chatbot</p>
+          <p className="text-muted-foreground">Join Fly Quick Note</p>
         </div>
         
         <form onSubmit={handleRegister} className="glass-card p-8 space-y-6 rounded-lg">

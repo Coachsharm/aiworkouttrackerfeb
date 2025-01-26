@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Notes from '@/components/Notes';
 import { Separator } from '@/components/ui/separator';
+import { FileText } from 'lucide-react';
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -33,9 +34,12 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="p-4 flex justify-between items-center">
-        <div>
-          <p className="text-xl text-muted-foreground">Welcome back</p>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+        <div className="flex items-center gap-4">
+          <FileText className="w-16 h-16 text-primary" />
+          <div>
+            <p className="text-xl text-muted-foreground">Welcome back</p>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Pencil } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -41,12 +41,12 @@ const Login = () => {
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center mb-6 animate-scale-in">
-            <div className="relative w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
-              <Pencil className="w-8 h-8 text-primary animate-fade-in" />
+            <div className="relative w-48 h-48 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
+              <FileText className="w-24 h-24 text-primary animate-fade-in" />
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gradient">Thrive Quick Note</h1>
+          <h1 className="text-4xl font-bold text-gradient">Fly Quick Note</h1>
           <p className="text-red-500 font-semibold">Coach Sharm, MSc</p>
         </div>
         
