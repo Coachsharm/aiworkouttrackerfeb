@@ -36,17 +36,16 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="p-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <FileText className="w-16 h-16 text-primary" />
+          <FileText className="w-12 h-12 text-primary" />
           <div>
-            <p className="text-xl text-muted-foreground">Welcome back</p>
-            <p className="text-lg font-medium">{user?.displayName || user?.email}</p>
+            <p className="text-lg text-muted-foreground">Welcome back</p>
+            <p className="text-base font-medium">{user?.displayName || user?.email}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="outline" onClick={() => navigate('/settings')}>
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
+          <Button variant="outline" size="icon" onClick={() => navigate('/settings')}>
+            <Settings className="w-4 h-4" />
           </Button>
           <Button onClick={handleLogout} variant="outline">
             Logout
@@ -54,9 +53,9 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto p-4 space-y-8">
-        <div className="text-center py-8">
-          <time className="text-7xl font-light tabular-nums">
+      <main className="flex-1 container mx-auto p-4 space-y-4">
+        <div className="text-center py-4">
+          <time className="text-6xl font-light tabular-nums">
             {time.toLocaleTimeString('en-US', {
               hour12: false,
               hour: '2-digit',
@@ -64,12 +63,12 @@ const Dashboard = () => {
               second: '2-digit'
             })}
           </time>
-          <div className="mt-4 mb-8">
+          <div className="mt-2 mb-4">
             <MotivationalQuote />
           </div>
         </div>
 
-        <Separator className="my-8" />
+        <Separator className="my-4" />
         
         <Notes />
       </main>

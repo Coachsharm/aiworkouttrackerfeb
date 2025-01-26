@@ -255,16 +255,14 @@ const Notes = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 space-y-4">
+    <div className="w-full max-w-6xl mx-auto space-y-4">
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Quick Notes</h2>
-        
         <div className="flex flex-col gap-4">
           {/* Quick Note Input */}
           <div className="flex items-center gap-2">
             <Input
               type="text"
-              placeholder="Title, Description (use comma to separate, or just type description)"
+              placeholder="Title (use comma to separate)"
               value={quickNote}
               onChange={(e) => setQuickNote(e.target.value)}
               className="flex-1"
@@ -304,25 +302,18 @@ const Notes = () => {
             )}
           </div>
 
-          {/* Keywords and Search Results */}
-          <div className="space-y-2">
-            <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
-            {searchQuery && (
-              <p className="text-sm text-muted-foreground">
-                Results for "{searchQuery}"
-              </p>
-            )}
-          </div>
+          {/* Keywords */}
+          <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
         </div>
       </div>
 
-      <Separator className="my-6" />
+      <Separator className="my-4" />
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 relative md:static">
         {/* Sidebar */}
         <div 
           className={cn(
-            "relative transition-all duration-300 ease-in-out border-r",
+            "fixed md:relative z-20 md:z-0 h-[calc(100vh-16rem)] md:h-auto transition-all duration-300 ease-in-out border-r bg-background",
             isSidebarCollapsed ? "w-12" : "w-64"
           )}
         >
@@ -332,17 +323,17 @@ const Notes = () => {
             className="absolute -right-3 top-2 z-10 p-1 bg-background border rounded-full"
           >
             {isSidebarCollapsed ? 
-              <ChevronRight className="h-4 w-4" /> : 
+              <ChevronRight className="h-4 w-4" : 
               <ChevronLeft className="h-4 w-4" />
             }
           </button>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto h-full">
             {/* Pinned Notes */}
             {pinnedNotes.length > 0 && (
               <div className="space-y-2">
                 <h3 className={cn(
-                  "font-medium px-2",
+                  "font-bold px-2 text-yellow-500",
                   isSidebarCollapsed && "hidden"
                 )}>
                   Pinned
@@ -363,7 +354,7 @@ const Notes = () => {
                       >
                         {SmartIcon && <SmartIcon className="h-4 w-4 shrink-0" />}
                         <span className={cn(
-                          "truncate",
+                          "truncate max-w-[180px]",
                           isSidebarCollapsed && "hidden"
                         )}>
                           {getNoteTitle(note)}
@@ -377,7 +368,7 @@ const Notes = () => {
             {/* All Notes */}
             <div className="space-y-2">
               <h3 className={cn(
-                "font-medium px-2",
+                "font-bold px-2 text-yellow-500",
                 isSidebarCollapsed && "hidden"
               )}>
                 All Notes
@@ -398,7 +389,7 @@ const Notes = () => {
                     >
                       {SmartIcon && <SmartIcon className="h-4 w-4 shrink-0" />}
                       <span className={cn(
-                        "truncate",
+                        "truncate max-w-[180px]",
                         isSidebarCollapsed && "hidden"
                       )}>
                         {getNoteTitle(note)}
@@ -411,12 +402,14 @@ const Notes = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1">
+        <div className="flex-1 ml-16 md:ml-0 overflow-x-hidden">
           {selectedNote ? (
             <div className="animate-fade-in space-y-4">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <h2 className="text-2xl font-semibold">{selectedNote.title}</h2>
+                  <h2 className="text-2xl font-semibold text-yellow-500">
+                    {selectedNote.title}
+                  </h2>
                   <p className="text-sm text-muted-foreground">
                     {format(selectedNote.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
                   </p>
