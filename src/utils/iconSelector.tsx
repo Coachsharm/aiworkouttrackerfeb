@@ -39,27 +39,24 @@ import { LucideIcon,
   ShoppingCart, CreditCard, Wallet,
   
   // Time
-  Clock, Timer, Calendar, Alarm,
+  Clock, Timer, Calendar,
   
   // Health
   Heart, Activity, Stethoscope, Pill,
   
   // Tools
-  Settings, Wrench, Scissors, Tool,
+  Settings, Wrench, Scissors,
   
   // Food & Drink
   Coffee, Apple,
   
   // Nature
-  Flower2 as Flower, Fish, Bird as BirdIcon,
+  Flower2 as Flower, Fish, Bird,
   
   // Misc
   Flag, Bookmark, Gift, Tag,
   StickyNote, Notebook, NotebookPen, NotepadText,
-  TextQuote, Palette, Book, Gamepad,
-  
-  // Emotions
-  Smile, Frown, Meh
+  TextQuote, Palette, Book, Gamepad
 } from 'lucide-react';
 
 interface IconMatch {
@@ -104,7 +101,7 @@ const iconMatches: IconMatch[] = [
   // Nature
   { keywords: ['flower', 'nature', 'plant'], icon: Flower },
   { keywords: ['fish', 'sea', 'water'], icon: Fish },
-  { keywords: ['bird', 'animal', 'fly'], icon: BirdIcon },
+  { keywords: ['bird', 'animal', 'fly'], icon: Bird },
   
   // Weather
   { keywords: ['sun', 'sunny', 'day'], icon: Sun },
@@ -127,12 +124,16 @@ const iconMatches: IconMatch[] = [
   { keywords: ['book', 'reading', 'study'], icon: Book },
   { keywords: ['game', 'gaming', 'play'], icon: Gamepad },
   
-  // Emotions and States
-  { keywords: ['happy', 'smile', 'good'], icon: Smile },
-  { keywords: ['sad', 'frown', 'bad'], icon: Frown },
-  { keywords: ['neutral', 'meh', 'okay'], icon: Meh },
-  { keywords: ['love', 'heart', 'like'], icon: Heart },
-  { keywords: ['star', 'favorite', 'important'], icon: Star },
+  // Time
+  { keywords: ['clock', 'time', 'watch'], icon: Clock },
+  { keywords: ['timer', 'countdown', 'stopwatch'], icon: Timer },
+  { keywords: ['calendar', 'date', 'schedule'], icon: Calendar },
+  { keywords: ['bell', 'notification', 'alert'], icon: Bell },
+  
+  // Tools and Settings
+  { keywords: ['settings', 'configure', 'options'], icon: Settings },
+  { keywords: ['wrench', 'tool', 'fix'], icon: Wrench },
+  { keywords: ['scissors', 'cut', 'craft'], icon: Scissors },
 ];
 
 export const getSmartIcon = (title: string): LucideIcon | null => {
@@ -156,7 +157,7 @@ export const getSmartIcon = (title: string): LucideIcon | null => {
     }
   }
   
-  return (props: any) => <Circle {...props} color={getNextAvailableColor()} />;
+  return Circle;
 };
 
 export const getAllIcons = () => {
