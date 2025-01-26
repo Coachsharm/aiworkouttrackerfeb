@@ -31,6 +31,7 @@ const AddNoteForm = ({
 }: AddNoteFormProps) => {
   const [SmartIcon, setSmartIcon] = useState<any>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string>('');
+  const [iconColor, setIconColor] = useState<string>('currentColor');
   const allIcons = getAllIcons();
 
   useEffect(() => {
@@ -41,6 +42,12 @@ const AddNoteForm = ({
   }, [title, selectedIconKey]);
 
   const handleIconSelect = (iconKey: string) => {
+    if (iconKey === 'no icon') {
+      setSmartIcon(null);
+      setSelectedIconKey(iconKey);
+      return;
+    }
+
     const selected = allIcons.find(i => i.keywords === iconKey);
     if (selected) {
       setSmartIcon(selected.icon);
@@ -61,7 +68,7 @@ const AddNoteForm = ({
             />
             {SmartIcon && (
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <SmartIcon className="h-4 w-4" />
+                <SmartIcon className="h-4 w-4" style={{ color: iconColor }} />
               </div>
             )}
           </div>
@@ -74,7 +81,7 @@ const AddNoteForm = ({
             {allIcons.map(({ icon: Icon, keywords }) => (
               <SelectItem key={keywords} value={keywords}>
                 <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
+                  {Icon ? <Icon className="h-4 w-4" /> : <span>No Icon</span>}
                   <span className="capitalize">{keywords}</span>
                 </div>
               </SelectItem>
