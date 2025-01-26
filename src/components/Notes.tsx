@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 import { Button } from './ui/button';
-import { Plus, Search, X, Pin, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Search, X, Pin, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Note } from './notes/types';
-import NoteCard from './notes/NoteCard';
-import AddNoteForm from './notes/AddNoteForm';
-import EditNoteForm from './notes/EditNoteForm';
-import KeywordTags from './notes/KeywordTags';
 import { useToast } from './ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from './ui/input';
@@ -36,6 +32,7 @@ const Notes = () => {
   const [quickNote, setQuickNote] = useState('');
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [pinnedNotes, setPinnedNotes] = useState<string[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const db = getFirestore();
@@ -175,19 +172,22 @@ const Notes = () => {
         <SidebarMenuButton
           onClick={() => setSelectedNote(note)}
           className={cn(
-            "w-full flex items-center gap-2 group",
-            selectedNote?.id === note.id && "bg-primary/10"
+            "w-full flex items-center gap-2 group transition-all duration-200",
+            selectedNote?.id === note.id && "bg-primary/10",
+            "hover:bg-accent"
           )}
         >
-          {SmartIcon && <SmartIcon className="h-4 w-4 text-muted-foreground" />}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="truncate">{note.title || "Untitled"}</span>
-              {isPinned && <Pin className="h-3 w-3 text-primary" />}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            {SmartIcon && <SmartIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="truncate font-medium">{note.title || "Untitled"}</span>
+                {isPinned && <Pin className="h-3 w-3 text-primary flex-shrink-0" />}
+              </div>
+              <span className="text-xs text-muted-foreground block truncate">
+                {new Date(note.createdAt.seconds * 1000).toLocaleDateString()}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {new Date(note.createdAt.seconds * 1000).toLocaleDateString()}
-            </span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -196,21 +196,50 @@ const Notes = () => {
 
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex h-[calc(100vh-12rem)] w-full">
-        <Sidebar className="w-72">
+      <div className="flex h-[calc(100vh-12rem)] w-full bg-background rounded-lg border">
+        <Sidebar className="w-72 border-r">
           <SidebarContent>
-            {/* Quick Note Input */}
             <div className="p-4 space-y-4">
-              <Input
-                type="text"
-                placeholder="Search notes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Search notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsAdding(true)}
+                  className="flex-shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {isAdding && (
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    placeholder="Title"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Description"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={addNote} className="flex-1">Save</Button>
+                    <Button variant="outline" onClick={() => setIsAdding(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Pinned Notes */}
             <SidebarGroup>
               <SidebarGroupLabel>Pinned Notes</SidebarGroupLabel>
               <SidebarGroupContent>
@@ -220,7 +249,6 @@ const Notes = () => {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* All Notes */}
             <SidebarGroup>
               <SidebarGroupLabel>All Notes</SidebarGroupLabel>
               <SidebarGroupContent>
@@ -232,7 +260,6 @@ const Notes = () => {
           </SidebarContent>
         </Sidebar>
 
-        {/* Main Content */}
         <div className="flex-1 p-6 animate-fade-in">
           {selectedNote ? (
             <div className="space-y-4">
@@ -252,9 +279,12 @@ const Notes = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => startEdit(selectedNote)}
+                    onClick={() => {
+                      setEditingId(selectedNote.id);
+                      setNewTitle(selectedNote.title);
+                      setNewDescription(selectedNote.description);
+                    }}
                   >
-                    <span className="sr-only">Edit</span>
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
@@ -262,12 +292,32 @@ const Notes = () => {
                     size="icon"
                     onClick={() => deleteNote(selectedNote.id)}
                   >
-                    <span className="sr-only">Delete</span>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <p className="whitespace-pre-wrap">{selectedNote.description}</p>
+              {editingId === selectedNote.id ? (
+                <div className="space-y-4">
+                  <Input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Title"
+                  />
+                  <Input
+                    type="text"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="Description"
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={() => updateNote(selectedNote.id)}>Save</Button>
+                    <Button variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap">{selectedNote.description}</p>
+              )}
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
