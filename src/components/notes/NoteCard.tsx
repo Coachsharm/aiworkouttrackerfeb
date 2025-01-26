@@ -11,17 +11,27 @@ interface NoteCardProps {
 }
 
 const formatTextWithLinks = (text: string) => {
-  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
+  // Updated regex to match URLs with or without protocol
+  const urlRegex = /(https?:\/\/[^\s]+)|(?<!\S)(www\.[^\s]+)|((?!www\.)[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+  
   return text.split(urlRegex).map((part, i) => {
-    if (part?.match(urlRegex)) {
-      const href = part.startsWith('www.') ? `https://${part}` : part;
+    if (!part) return null;
+    
+    if (part.match(urlRegex)) {
+      let href = part;
+      if (part.startsWith('www.')) {
+        href = `https://${part}`;
+      } else if (!part.startsWith('http')) {
+        href = `https://${part}`;
+      }
+      
       return (
         <a
           key={i}
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
+          className="text-blue-400 hover:text-blue-300 underline break-all"
         >
           {part}
         </a>
@@ -35,9 +45,13 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
   return (
     <Card className="p-4">
       <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-medium">{note.title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">
+        <div className="flex flex-col">
+          {note.title && (
+            <h3 className="text-lg font-medium text-yellow-500">
+              {note.title}
+            </h3>
+          )}
+          <p className="text-sm text-muted-foreground">
             {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
           </p>
         </div>
@@ -58,7 +72,7 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
           </Button>
         </div>
       </div>
-      <p className="mt-2 text-muted-foreground">
+      <p className="mt-2 text-muted-foreground whitespace-pre-wrap break-words">
         {formatTextWithLinks(note.description)}
       </p>
     </Card>
