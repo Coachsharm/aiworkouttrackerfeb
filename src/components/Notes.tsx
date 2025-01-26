@@ -1,26 +1,16 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 import { Button } from './ui/button';
-import { Plus, Search, X, Pin, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { Note } from './notes/types';
+import NoteCard from './notes/NoteCard';
+import AddNoteForm from './notes/AddNoteForm';
+import EditNoteForm from './notes/EditNoteForm';
+import KeywordTags from './notes/KeywordTags';
 import { useToast } from './ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from './ui/input';
 import { extractKeywords } from '@/utils/keywordAnalysis';
-import { 
-  Sidebar,
-  SidebarContent,
-  SidebarTrigger,
-  SidebarProvider,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from './ui/sidebar';
-import { getSmartIcon } from '@/utils/iconSelector';
-import { cn } from '@/lib/utils';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -30,9 +20,6 @@ const Notes = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [quickNote, setQuickNote] = useState('');
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [pinnedNotes, setPinnedNotes] = useState<string[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const db = getFirestore();
@@ -59,9 +46,11 @@ const Notes = () => {
           b.createdAt.seconds - a.createdAt.seconds
         );
 
+        // Extract keywords from all notes
         const extractedKeywords = extractKeywords(sortedNotes);
         setKeywords(extractedKeywords);
 
+        // Filter notes based on search query
         const filteredNotes = searchQuery
           ? sortedNotes.filter(note => 
               note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -155,178 +144,148 @@ const Notes = () => {
     setNewDescription(note.description);
   };
 
-  const togglePin = (noteId: string) => {
-    setPinnedNotes(prev => 
-      prev.includes(noteId) 
-        ? prev.filter(id => id !== noteId)
-        : [...prev, noteId]
-    );
+  const handleQuickNoteAdd = async () => {
+    if (!user || !quickNote.trim()) return;
+    
+    let title = '';
+    let description = quickNote.trim();
+    
+    // Check if there's a comma in the input
+    const commaIndex = quickNote.indexOf(',');
+    if (commaIndex !== -1) {
+      title = quickNote.substring(0, commaIndex).trim();
+      description = quickNote.substring(commaIndex + 1).trim();
+    }
+
+    try {
+      await addDoc(collection(db, 'notes'), {
+        title,
+        description,
+        createdAt: Timestamp.now(),
+        userId: user.uid
+      });
+      setQuickNote('');
+      toast({
+        title: "Note added successfully",
+        description: "Your note has been saved."
+      });
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error saving note",
+        description: "Please make sure you're logged in and try again."
+      });
+    }
   };
 
-  const renderSidebarNote = (note: Note) => {
-    const SmartIcon = getSmartIcon(note.title);
-    const isPinned = pinnedNotes.includes(note.id);
-    
-    return (
-      <SidebarMenuItem key={note.id}>
-        <SidebarMenuButton
-          onClick={() => setSelectedNote(note)}
-          className={cn(
-            "w-full flex items-center gap-2 group transition-all duration-200",
-            selectedNote?.id === note.id && "bg-primary/10",
-            "hover:bg-accent"
-          )}
-        >
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            {SmartIcon && <SmartIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="truncate font-medium">{note.title || "Untitled"}</span>
-                {isPinned && <Pin className="h-3 w-3 text-primary flex-shrink-0" />}
-              </div>
-              <span className="text-xs text-muted-foreground block truncate">
-                {new Date(note.createdAt.seconds * 1000).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    );
+  const handleKeywordClick = (keyword: string) => {
+    setSearchQuery(keyword);
   };
 
   return (
-    <SidebarProvider defaultOpen>
-      <div className="flex h-[calc(100vh-12rem)] w-full bg-background rounded-lg border">
-        <Sidebar className="w-72 border-r">
-          <SidebarContent>
-            <div className="p-4 space-y-4">
-              <div className="flex items-center gap-2">
-                <Input
-                  type="text"
-                  placeholder="Search notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsAdding(true)}
-                  className="flex-shrink-0"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-4">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">Quick Notes</h2>
+        
+        <div className="flex flex-col gap-4">
+          {/* Quick Note Input */}
+          <div className="flex items-center gap-2">
+            <Input
+              type="text"
+              placeholder="Title, Description (use comma to separate, or just type description)"
+              value={quickNote}
+              onChange={(e) => setQuickNote(e.target.value)}
+              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleQuickNoteAdd();
+                }
+              }}
+            />
+            <Button
+              onClick={handleQuickNoteAdd}
+              className="gap-2 whitespace-nowrap"
+              variant="outline"
+            >
+              <Plus className="h-4 w-4" />
+              Add Note
+            </Button>
+          </div>
 
-              {isAdding && (
-                <div className="space-y-2">
-                  <Input
-                    type="text"
-                    placeholder="Title"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Description"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                    <Button onClick={addNote} className="flex-1">Save</Button>
-                    <Button variant="outline" onClick={() => setIsAdding(false)}>Cancel</Button>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Search Input */}
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Search notes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
-            <SidebarGroup>
-              <SidebarGroupLabel>Pinned Notes</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {notes.filter(note => pinnedNotes.includes(note.id)).map(renderSidebarNote)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>All Notes</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {notes.filter(note => !pinnedNotes.includes(note.id)).map(renderSidebarNote)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-
-        <div className="flex-1 p-6 animate-fade-in">
-          {selectedNote ? (
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <h2 className="text-2xl font-semibold">{selectedNote.title || "Untitled"}</h2>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => togglePin(selectedNote.id)}
-                  >
-                    <Pin className={cn(
-                      "h-4 w-4",
-                      pinnedNotes.includes(selectedNote.id) && "text-primary"
-                    )} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setEditingId(selectedNote.id);
-                      setNewTitle(selectedNote.title);
-                      setNewDescription(selectedNote.description);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteNote(selectedNote.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              {editingId === selectedNote.id ? (
-                <div className="space-y-4">
-                  <Input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Title"
-                  />
-                  <Input
-                    type="text"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    placeholder="Description"
-                  />
-                  <div className="flex gap-2">
-                    <Button onClick={() => updateNote(selectedNote.id)}>Save</Button>
-                    <Button variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="whitespace-pre-wrap">{selectedNote.description}</p>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Select a note to view its contents
-            </div>
+          {/* Keyword Tags */}
+          <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
+          
+          {searchQuery && (
+            <p className="text-sm text-muted-foreground">
+              Results for "{searchQuery}"
+            </p>
           )}
         </div>
       </div>
-    </SidebarProvider>
+
+      {isAdding && (
+        <AddNoteForm
+          title={newTitle}
+          description={newDescription}
+          onTitleChange={setNewTitle}
+          onDescriptionChange={setNewDescription}
+          onSave={addNote}
+          onCancel={() => {
+            setIsAdding(false);
+            setNewTitle('');
+            setNewDescription('');
+          }}
+        />
+      )}
+
+      <div className="space-y-4">
+        {notes.map((note) => (
+          <div key={note.id}>
+            {editingId === note.id ? (
+              <EditNoteForm
+                title={newTitle}
+                description={newDescription}
+                onTitleChange={setNewTitle}
+                onDescriptionChange={setNewDescription}
+                onSave={() => updateNote(note.id)}
+                onCancel={() => {
+                  setEditingId(null);
+                  setNewTitle('');
+                  setNewDescription('');
+                }}
+              />
+            ) : (
+              <NoteCard
+                note={note}
+                onEdit={startEdit}
+                onDelete={deleteNote}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
