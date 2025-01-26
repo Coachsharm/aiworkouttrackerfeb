@@ -1,39 +1,11 @@
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Card } from './ui/card';
-import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
-import { format } from 'date-fns';
-
-interface Note {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Timestamp;
-}
-
-const formatTextWithLinks = (text: string) => {
-  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
-  return text.split(urlRegex).map((part, i) => {
-    if (part?.match(urlRegex)) {
-      const href = part.startsWith('www.') ? `https://${part}` : part;
-      return (
-        <a
-          key={i}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {part}
-        </a>
-      );
-    }
-    return part;
-  });
-};
+import { Plus } from 'lucide-react';
+import { Note } from './notes/types';
+import NoteCard from './notes/NoteCard';
+import AddNoteForm from './notes/AddNoteForm';
+import EditNoteForm from './notes/EditNoteForm';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -119,94 +91,44 @@ const Notes = () => {
       </div>
 
       {isAdding && (
-        <Card className="p-4 space-y-4">
-          <Input
-            placeholder="Title (optional)"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-          />
-          <Textarea
-            placeholder="Description"
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAdding(false);
-                setNewTitle('');
-                setNewDescription('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={addNote}>Save Note</Button>
-          </div>
-        </Card>
+        <AddNoteForm
+          title={newTitle}
+          description={newDescription}
+          onTitleChange={setNewTitle}
+          onDescriptionChange={setNewDescription}
+          onSave={addNote}
+          onCancel={() => {
+            setIsAdding(false);
+            setNewTitle('');
+            setNewDescription('');
+          }}
+        />
       )}
 
       <div className="space-y-4">
         {notes.map((note) => (
-          <Card key={note.id} className="p-4">
+          <div key={note.id}>
             {editingId === note.id ? (
-              <div className="space-y-4">
-                <Input
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                />
-                <Textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setEditingId(null);
-                      setNewTitle('');
-                      setNewDescription('');
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                  <Button onClick={() => updateNote(note.id)}>
-                    <Save className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <EditNoteForm
+                title={newTitle}
+                description={newDescription}
+                onTitleChange={setNewTitle}
+                onDescriptionChange={setNewDescription}
+                onSave={() => updateNote(note.id)}
+                onCancel={() => {
+                  setEditingId(null);
+                  setNewTitle('');
+                  setNewDescription('');
+                }}
+              />
             ) : (
-              <>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-medium">{note.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => startEdit(note)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteNote(note.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <p className="mt-2 text-muted-foreground">
-                  {formatTextWithLinks(note.description)}
-                </p>
-              </>
+              <NoteCard
+                note={note}
+                onEdit={startEdit}
+                onDelete={deleteNote}
+              />
             )}
-          </Card>
+          </div>
         ))}
       </div>
     </div>
