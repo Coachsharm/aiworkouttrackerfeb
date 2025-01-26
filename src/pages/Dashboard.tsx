@@ -4,6 +4,8 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import Notes from '@/components/Notes';
+import { Separator } from '@/components/ui/separator';
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -28,14 +30,19 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-      <div className="glass-card p-12 rounded-lg space-y-8 animate-fadeIn">
-        <div className="text-center space-y-2">
+    <div className="min-h-screen flex flex-col bg-background">
+      <header className="p-4 flex justify-between items-center">
+        <div>
           <p className="text-xl text-muted-foreground">Welcome back</p>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
+        <Button onClick={handleLogout} variant="outline">
+          Logout
+        </Button>
+      </header>
 
-        <div className="text-center">
+      <main className="flex-1 container mx-auto p-4 space-y-8">
+        <div className="text-center py-8">
           <time className="text-7xl font-light tabular-nums">
             {time.toLocaleTimeString('en-US', {
               hour12: false,
@@ -46,14 +53,10 @@ const Dashboard = () => {
           </time>
         </div>
 
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="w-full"
-        >
-          Logout
-        </Button>
-      </div>
+        <Separator className="my-8" />
+        
+        <Notes />
+      </main>
     </div>
   );
 };
