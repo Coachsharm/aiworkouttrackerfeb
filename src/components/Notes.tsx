@@ -322,10 +322,11 @@ const Notes = () => {
             onClick={() => setIsSidebarCollapsed(prev => !prev)}
             className="absolute -right-3 top-2 z-10 p-1 bg-background border rounded-full"
           >
-            {isSidebarCollapsed ? 
-              <ChevronRight className="h-4 w-4" : 
+            {isSidebarCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
               <ChevronLeft className="h-4 w-4" />
-            }
+            )}
           </button>
 
           <div className="space-y-4 overflow-y-auto h-full">
@@ -472,3 +473,4 @@ const Notes = () => {
 };
 
 export default Notes;
+
