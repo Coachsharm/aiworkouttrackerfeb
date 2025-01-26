@@ -6,9 +6,11 @@ import { Note } from './notes/types';
 import NoteCard from './notes/NoteCard';
 import AddNoteForm from './notes/AddNoteForm';
 import EditNoteForm from './notes/EditNoteForm';
+import KeywordTags from './notes/KeywordTags';
 import { useToast } from './ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from './ui/input';
+import { extractKeywords } from '@/utils/keywordAnalysis';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -21,6 +23,8 @@ const Notes = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const db = getFirestore();
+
+  const [keywords, setKeywords] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -41,6 +45,10 @@ const Notes = () => {
         const sortedNotes = [...notesData].sort((a, b) => 
           b.createdAt.seconds - a.createdAt.seconds
         );
+
+        // Extract keywords from all notes
+        const extractedKeywords = extractKeywords(sortedNotes);
+        setKeywords(extractedKeywords);
 
         // Filter notes based on search query
         const filteredNotes = searchQuery
@@ -171,6 +179,10 @@ const Notes = () => {
     }
   };
 
+  const handleKeywordClick = (keyword: string) => {
+    setSearchQuery(keyword);
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto p-4 space-y-4">
       <div className="space-y-4">
@@ -220,6 +232,9 @@ const Notes = () => {
               </button>
             )}
           </div>
+
+          {/* Keyword Tags */}
+          <KeywordTags keywords={keywords} onKeywordClick={handleKeywordClick} />
           
           {searchQuery && (
             <p className="text-sm text-muted-foreground">
