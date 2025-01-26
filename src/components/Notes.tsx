@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, Timestamp, query, where, or } from 'firebase/firestore';
 import { Button } from './ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Note } from './notes/types';
 import NoteCard from './notes/NoteCard';
 import AddNoteForm from './notes/AddNoteForm';
 import EditNoteForm from './notes/EditNoteForm';
 import { useToast } from './ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Input } from './ui/input';
 
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -15,6 +16,7 @@ const Notes = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
   const db = getFirestore();
@@ -38,8 +40,16 @@ const Notes = () => {
         const sortedNotes = [...notesData].sort((a, b) => 
           b.createdAt.seconds - a.createdAt.seconds
         );
+
+        // Filter notes based on search query
+        const filteredNotes = searchQuery
+          ? sortedNotes.filter(note => 
+              note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              note.description.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+          : sortedNotes;
         
-        setNotes(sortedNotes);
+        setNotes(filteredNotes);
       },
       (error) => {
         console.error('Error fetching notes:', error);
@@ -52,7 +62,7 @@ const Notes = () => {
     );
 
     return () => unsubscribe();
-  }, [db, toast, user]);
+  }, [db, toast, user, searchQuery]);
 
   const addNote = async () => {
     if (!user) return;
@@ -127,16 +137,28 @@ const Notes = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="text-2xl font-semibold">Quick Notes</h2>
-        <Button
-          onClick={() => setIsAdding(true)}
-          className="gap-2"
-          variant="outline"
-        >
-          <Plus className="h-4 w-4" />
-          Add Note
-        </Button>
+        <div className="flex items-center gap-2 flex-1 justify-end">
+          <div className="relative flex-1 max-w-md">
+            <Input
+              type="text"
+              placeholder="Search notes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
+          <Button
+            onClick={() => setIsAdding(true)}
+            className="gap-2"
+            variant="outline"
+          >
+            <Plus className="h-4 w-4" />
+            Add Note
+          </Button>
+        </div>
       </div>
 
       {isAdding && (

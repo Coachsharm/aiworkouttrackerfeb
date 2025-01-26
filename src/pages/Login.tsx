@@ -46,7 +46,7 @@ const Login = () => {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gradient">Thrive Quick Note</h1>
+          <h1 className="text-4xl font-bold text-gradient">Thrive Quick Notes</h1>
           <p className="text-red-500 font-semibold">Coach Sharm, MSc</p>
         </div>
         
