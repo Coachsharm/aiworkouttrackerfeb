@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Notes from '@/components/Notes';
 import { Separator } from '@/components/ui/separator';
-import { FileText } from 'lucide-react';
+import { FileText, Settings } from 'lucide-react';
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -38,11 +38,15 @@ const Dashboard = () => {
           <FileText className="w-16 h-16 text-primary" />
           <div>
             <p className="text-xl text-muted-foreground">Welcome back</p>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
+            <p className="text-lg font-medium">{user?.displayName || user?.email}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <Button variant="outline" onClick={() => navigate('/settings')}>
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
           <Button onClick={handleLogout} variant="outline">
             Logout
           </Button>

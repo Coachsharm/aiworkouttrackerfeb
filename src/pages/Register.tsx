@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { FileText, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,7 +33,12 @@ const Register = () => {
     setLoading(true);
     
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (name) {
+        await updateProfile(userCredential.user, {
+          displayName: name
+        });
+      }
       navigate('/dashboard');
     } catch (error) {
       toast({
@@ -61,6 +67,16 @@ const Register = () => {
         
         <form onSubmit={handleRegister} className="glass-card p-8 space-y-6 rounded-lg">
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder="Enter your name (optional)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
+              />
+            </div>
+
             <div className="space-y-2">
               <Input
                 type="email"
