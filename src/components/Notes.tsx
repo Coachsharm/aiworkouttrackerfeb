@@ -135,6 +135,49 @@ const Notes = () => {
     };
   }, [db, toast, user, searchQuery, sortField, sortDirection]);
 
+  const handleQuickNoteAdd = async () => {
+    if (!user || !quickNote.trim()) return;
+
+    try {
+      const titles = quickNote.split(',').map(title => title.trim());
+      
+      for (const title of titles) {
+        await addDoc(collection(db, 'notes'), {
+          title,
+          description: '',
+          createdAt: Timestamp.now(),
+          modifiedAt: Timestamp.now(),
+          userId: user.uid,
+          isDeleted: false
+        });
+      }
+      
+      setQuickNote('');
+      toast({
+        title: "Notes added",
+        description: "Your notes have been created successfully."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error adding notes",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const handleKeywordClick = (keyword: string) => {
+    setSearchQuery(keyword);
+  };
+
+  const getNoteTitle = (note: Note) => {
+    if (note.title && note.title.trim() !== '') {
+      return note.title;
+    }
+    const firstLine = note.description.split('\n')[0];
+    return firstLine.length > 30 ? firstLine.substring(0, 30) + '...' : firstLine;
+  };
+
   const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
@@ -308,6 +351,94 @@ const Notes = () => {
       }
       return part;
     });
+  };
+
+  const handleCopy = async (note: Note) => {
+    try {
+      const noteText = `${note.title}\n${format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}\n\n${note.description}`;
+      await navigator.clipboard.writeText(noteText);
+      toast({
+        title: "Copied to clipboard",
+        description: "The note has been copied to your clipboard."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error copying note",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const togglePin = async (noteId: string) => {
+    try {
+      if (pinnedNotes.includes(noteId)) {
+        setPinnedNotes(prev => prev.filter(id => id !== noteId));
+      } else {
+        setPinnedNotes(prev => [...prev, noteId]);
+      }
+      toast({
+        title: pinnedNotes.includes(noteId) ? "Note unpinned" : "Note pinned",
+        description: pinnedNotes.includes(noteId) 
+          ? "The note has been unpinned." 
+          : "The note has been pinned to the top."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error updating pin status",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const handleNoteContentUpdate = async (noteId: string, newContent: string) => {
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, {
+        description: newContent,
+        modifiedAt: Timestamp.now()
+      });
+      toast({
+        title: "Note updated",
+        description: "Your changes have been saved."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error updating note",
+        description: "Please try again."
+      });
+    }
+  };
+
+  const addNote = async () => {
+    if (!user) return;
+
+    try {
+      await addDoc(collection(db, 'notes'), {
+        title: newTitle,
+        description: newDescription,
+        createdAt: Timestamp.now(),
+        modifiedAt: Timestamp.now(),
+        userId: user.uid,
+        isDeleted: false
+      });
+
+      setNewTitle('');
+      setNewDescription('');
+      setIsAdding(false);
+      toast({
+        title: "Note added",
+        description: "Your note has been created successfully."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error adding note",
+        description: "Please try again."
+      });
+    }
   };
 
   return (
