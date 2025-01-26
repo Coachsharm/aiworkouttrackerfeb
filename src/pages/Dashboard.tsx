@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import Notes from '@/components/Notes';
 import { Separator } from '@/components/ui/separator';
 
@@ -36,9 +37,12 @@ const Dashboard = () => {
           <p className="text-xl text-muted-foreground">Welcome back</p>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
-        <Button onClick={handleLogout} variant="outline">
-          Logout
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button onClick={handleLogout} variant="outline">
+            Logout
+          </Button>
+        </div>
       </header>
 
       <main className="flex-1 container mx-auto p-4 space-y-8">

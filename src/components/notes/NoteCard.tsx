@@ -11,7 +11,6 @@ interface NoteCardProps {
 }
 
 const formatTextWithLinks = (text: string) => {
-  // Updated regex to match URLs with or without protocol
   const urlRegex = /(https?:\/\/[^\s]+)|(?<!\S)(www\.[^\s]+)|((?!www\.)[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
   
   return text.split(urlRegex).map((part, i) => {
@@ -31,7 +30,7 @@ const formatTextWithLinks = (text: string) => {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300 underline break-all"
+          className="text-primary hover:text-primary/80 underline break-all"
         >
           {part}
         </a>
@@ -47,7 +46,7 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
           {note.title && note.title.trim() !== '' && (
-            <h3 className="text-lg font-medium text-yellow-500">
+            <h3 className="text-lg font-medium dark:text-amber-400 text-amber-600">
               {note.title}
             </h3>
           )}
