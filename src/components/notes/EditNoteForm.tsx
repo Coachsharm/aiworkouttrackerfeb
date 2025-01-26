@@ -58,24 +58,9 @@ const EditNoteForm = ({
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Input
-              value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
-              className={SmartIcon ? "pl-10" : ""}
-              placeholder="Title (optional)"
-            />
-            {SmartIcon && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <SmartIcon className="h-4 w-4" style={{ color: iconColor }} />
-              </div>
-            )}
-          </div>
-        </div>
-        <Select value={selectedIconKey} onValueChange={handleIconSelect}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select icon" />
+        <Select value={selectedIconKey} onValueChange={handleIconSelect} className="w-[120px]">
+          <SelectTrigger>
+            <SelectValue placeholder="Icon" />
           </SelectTrigger>
           <SelectContent>
             {allIcons.map(({ icon: Icon, keywords }) => (
@@ -88,6 +73,13 @@ const EditNoteForm = ({
             ))}
           </SelectContent>
         </Select>
+        <div className="flex-1">
+          <Input
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+            placeholder="Title (optional)"
+          />
+        </div>
       </div>
       <Textarea
         value={description}

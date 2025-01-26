@@ -193,7 +193,7 @@ const Notes = () => {
           <div className="flex items-center gap-2">
             <Input
               type="text"
-              placeholder="Title, Description (or just type description)"
+              placeholder="Title, Description (use comma to separate, or just type description)"
               value={quickNote}
               onChange={(e) => setQuickNote(e.target.value)}
               className="flex-1"

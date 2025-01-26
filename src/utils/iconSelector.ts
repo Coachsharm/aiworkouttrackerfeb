@@ -33,7 +33,22 @@ import { LucideIcon,
   Target, Terminal, Thermometer, ThumbsDown, ThumbsUp,
   Ticket, Timer, Trophy, Type, Umbrella, Undo,
   UserCheck, UserMinus, UserPlus, Users, Video, ViewIcon,
-  ZoomIn, ZoomOut } from 'lucide-react';
+  ZoomIn, ZoomOut, StickyNote, Notebook, NotebookPen, NotepadText, TextQuote,
+  FlagTriangleLeft, FlagTriangleRight, Tree, Flower, Bird, Fish, Cat, Dog, 
+  Sun, Cloud, Moon, Rainbow, Umbrella, Laptop, Phone, Tablet, Desktop, 
+  Printer, Camera, Headphones, Speaker, Palette, Music, Book, GamepadTwo, 
+  Dumbbell, Bike, Running, Swimming, Smile, Frown, Meh, Heart, Star, 
+  ThumbsUp, ThumbsDown, Briefcase, Calendar, Clock, Timer, Alarm, Bell, 
+  Mail, MessageCircle, MessageSquare, Phone as PhoneCall, Video, 
+  ShoppingCart, CreditCard, Wallet, DollarSign, Receipt, Stethoscope, 
+  Pills, FirstAid, Activity, Heart as HeartPulse, Plane, Car, Train, 
+  Bus, Ship, MapPin, Compass, Home, Bed, Sofa, Bath, Kitchen, Door, 
+  Tool, Wrench, Scissors, Key, Lock, Search, File, FileText, Folder, 
+  Archive, Download, Upload, Image, Film, Camera as PhotoCamera, 
+  Music as MusicNote, Share, Link, Globe, Users, User, Shield, 
+  ShieldCheck, ShieldAlert, Key as AccessKey, Check, X, AlertCircle, 
+  InfoIcon, HelpCircle, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, 
+  ChevronUp, Circle, Square, Triangle, Hexagon, Star as StarShape } from 'lucide-react';
 
 interface IconMatch {
   keywords: string[];
@@ -59,85 +74,70 @@ const getNextAvailableColor = (): string => {
 };
 
 const iconMatches: IconMatch[] = [
-  // Entertainment & Media
-  { keywords: ['tv', 'television', 'watch', 'movie', 'show', 'screen'], icon: Tv },
-  { keywords: ['music', 'song', 'playlist', 'audio', 'concert'], icon: Music },
-  { keywords: ['book', 'read', 'novel', 'study', 'textbook'], icon: Book },
-  { keywords: ['album', 'photo', 'picture', 'image'], icon: Album },
-  { keywords: ['video', 'film', 'camera', 'recording'], icon: Video },
-  { keywords: ['game', 'gaming', 'controller', 'play'], icon: Gamepad2 },
+  // Note-specific icons
+  { keywords: ['note', 'sticky', 'memo'], icon: StickyNote },
+  { keywords: ['notebook', 'journal'], icon: Notebook },
+  { keywords: ['writing', 'pen', 'write'], icon: NotebookPen },
+  { keywords: ['notepad', 'text', 'document'], icon: NotepadText },
+  { keywords: ['quote', 'citation'], icon: TextQuote },
   
-  // Food & Drink
-  { keywords: ['ice cream', 'icecream', 'dessert', 'frozen', 'gelato'], icon: IceCream },
-  { keywords: ['coffee', 'tea', 'drink', 'cafe', 'beverage'], icon: Coffee },
-  { keywords: ['apple', 'fruit', 'food', 'snack'], icon: Apple },
-  { keywords: ['pizza', 'food', 'meal', 'restaurant'], icon: Pizza },
+  // Colored flags for importance
+  { keywords: ['flag', 'important', 'urgent'], icon: Flag },
+  { keywords: ['flag left', 'mark left'], icon: FlagTriangleLeft },
+  { keywords: ['flag right', 'mark right'], icon: FlagTriangleRight },
   
-  // Transportation
-  { keywords: ['car', 'drive', 'vehicle', 'transport', 'auto'], icon: Car },
-  { keywords: ['ambulance', 'emergency', 'hospital', 'medical'], icon: Ambulance },
-  { keywords: ['plane', 'flight', 'airport', 'travel', 'airplane'], icon: Plane },
-  { keywords: ['train', 'railway', 'metro', 'subway'], icon: Train },
-  { keywords: ['bus', 'coach', 'transport'], icon: Bus },
-  { keywords: ['bike', 'bicycle', 'cycling'], icon: Bike },
-  { keywords: ['ship', 'boat', 'cruise', 'sail'], icon: Ship },
-  { keywords: ['rocket', 'space', 'launch'], icon: Rocket },
-  
-  // Buildings & Places
-  { keywords: ['home', 'house', 'apartment'], icon: Home },
-  { keywords: ['building', 'tower', 'skyscraper'], icon: Building },
-  { keywords: ['school', 'education', 'university', 'college'], icon: School },
-  { keywords: ['hospital', 'clinic', 'healthcare'], icon: Hospital },
-  { keywords: ['store', 'shop', 'retail'], icon: Store },
-  { keywords: ['hotel', 'lodging', 'accommodation'], icon: Hotel },
-  
-  // Nature & Weather
+  // Food and Drinks
+  { keywords: ['apple', 'fruit'], icon: Apple },
+  { keywords: ['pizza', 'food'], icon: Pizza },
+  { keywords: ['coffee', 'cafe', 'drink'], icon: Coffee },
+  { keywords: ['ice cream', 'dessert'], icon: IceCream },
+  { keywords: ['sandwich', 'lunch'], icon: Sandwich },
+  { keywords: ['cake', 'birthday'], icon: Cake },
+  { keywords: ['cookie', 'snack'], icon: Cookie },
+  { keywords: ['beer', 'alcohol'], icon: Beer },
+  { keywords: ['wine', 'drink'], icon: Wine },
+
+  // Nature and Weather
+  { keywords: ['tree', 'nature', 'plant'], icon: Tree },
+  { keywords: ['flower', 'garden'], icon: Flower },
+  { keywords: ['bird', 'animal'], icon: Bird },
+  { keywords: ['fish', 'sea'], icon: Fish },
+  { keywords: ['cat', 'pet'], icon: Cat },
+  { keywords: ['dog', 'pet'], icon: Dog },
   { keywords: ['sun', 'sunny', 'day'], icon: Sun },
-  { keywords: ['moon', 'night', 'dark'], icon: Moon },
-  { keywords: ['cloud', 'weather', 'sky'], icon: Cloud },
-  { keywords: ['wind', 'breeze', 'weather'], icon: Wind },
-  { keywords: ['mountain', 'peak', 'hill'], icon: Mountain },
-  
-  // Technology
-  { keywords: ['camera', 'photo', 'picture'], icon: Camera },
-  { keywords: ['phone', 'mobile', 'call'], icon: Phone },
-  { keywords: ['laptop', 'computer', 'pc'], icon: Laptop },
-  { keywords: ['monitor', 'screen', 'display'], icon: Monitor },
-  { keywords: ['printer', 'print', 'document'], icon: Printer },
-  { keywords: ['wifi', 'internet', 'network'], icon: Wifi },
-  { keywords: ['battery', 'power', 'energy'], icon: Battery },
-  { keywords: ['bluetooth', 'wireless', 'connection'], icon: Bluetooth },
-  
-  // Actions & UI
-  { keywords: ['search', 'find', 'lookup'], icon: Search },
-  { keywords: ['edit', 'modify', 'change'], icon: Edit },
-  { keywords: ['copy', 'duplicate', 'clone'], icon: Copy },
-  { keywords: ['share', 'send', 'distribute'], icon: Share },
-  { keywords: ['lock', 'secure', 'protect'], icon: Lock },
-  { keywords: ['unlock', 'open', 'access'], icon: Unlock },
-  { keywords: ['download', 'get', 'fetch'], icon: Download },
-  { keywords: ['upload', 'put', 'send'], icon: Upload },
-  
-  // Files & Data
-  { keywords: ['file', 'document', 'paper'], icon: File },
-  { keywords: ['folder', 'directory', 'container'], icon: Folder },
-  { keywords: ['tag', 'label', 'category'], icon: Tag },
-  
-  // Payment & Finance
-  { keywords: ['credit', 'card', 'payment'], icon: CreditCard },
-  { keywords: ['wallet', 'money', 'payment'], icon: Wallet },
-  { keywords: ['euro', 'currency', 'money'], icon: Euro },
-  
-  // Generic Icons
-  { keywords: ['check', 'done', 'complete', 'success'], icon: Check },
-  { keywords: ['error', 'wrong', 'incorrect', 'fail'], icon: X },
-  { keywords: ['flag'], icon: Flag },
-  { keywords: ['circle'], icon: Circle },
-  { keywords: ['square'], icon: Square },
-  { keywords: ['triangle'], icon: Triangle },
-  { keywords: ['star', 'favorite', 'bookmark'], icon: Star },
-  { keywords: ['heart', 'like', 'love'], icon: Heart },
-  { keywords: ['bell', 'notification', 'alert'], icon: Bell }
+  { keywords: ['cloud', 'weather'], icon: Cloud },
+  { keywords: ['moon', 'night'], icon: Moon },
+  { keywords: ['rainbow', 'weather'], icon: Rainbow },
+  { keywords: ['umbrella', 'rain'], icon: Umbrella },
+
+  // Tech and Devices
+  { keywords: ['laptop', 'computer'], icon: Laptop },
+  { keywords: ['phone', 'mobile'], icon: Phone },
+  { keywords: ['tablet', 'ipad'], icon: Tablet },
+  { keywords: ['desktop', 'pc'], icon: Desktop },
+  { keywords: ['printer', 'print'], icon: Printer },
+  { keywords: ['camera', 'photo'], icon: Camera },
+  { keywords: ['headphones', 'audio'], icon: Headphones },
+  { keywords: ['speaker', 'sound'], icon: Speaker },
+
+  // Activities and Hobbies
+  { keywords: ['art', 'paint', 'drawing'], icon: Palette },
+  { keywords: ['music', 'song'], icon: Music },
+  { keywords: ['book', 'reading'], icon: Book },
+  { keywords: ['game', 'gaming'], icon: GamepadTwo },
+  { keywords: ['exercise', 'gym'], icon: Dumbbell },
+  { keywords: ['bike', 'cycling'], icon: Bike },
+  { keywords: ['run', 'running'], icon: Running },
+  { keywords: ['swim', 'swimming'], icon: Swimming },
+
+  // Emotions and States
+  { keywords: ['happy', 'smile'], icon: Smile },
+  { keywords: ['sad', 'frown'], icon: Frown },
+  { keywords: ['neutral', 'meh'], icon: Meh },
+  { keywords: ['love', 'heart'], icon: Heart },
+  { keywords: ['star', 'favorite'], icon: Star },
+  { keywords: ['like', 'thumbs up'], icon: ThumbsUp },
+  { keywords: ['dislike', 'thumbs down'], icon: ThumbsDown },
 ];
 
 export const getSmartIcon = (title: string): LucideIcon | null => {
@@ -165,12 +165,16 @@ export const getSmartIcon = (title: string): LucideIcon | null => {
   }
   
   // If no match found, return Circle with a non-repeating color
-  return Circle;
+  const CircleWithColor = (props: any) => {
+    return <Circle {...props} color={getNextAvailableColor()} />;
+  };
+  
+  return CircleWithColor;
 };
 
 export const getAllIcons = () => {
   return [
-    { icon: null, keywords: 'no icon' }, // Add "no icon" option
+    { icon: null, keywords: 'no icon' },
     ...iconMatches.map(match => ({
       icon: match.icon,
       keywords: match.keywords[0], // Use first keyword as label
