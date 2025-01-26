@@ -14,6 +14,27 @@ interface Note {
   createdAt: Timestamp;
 }
 
+const formatTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
+  return text.split(urlRegex).map((part, i) => {
+    if (part?.match(urlRegex)) {
+      const href = part.startsWith('www.') ? `https://${part}` : part;
+      return (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:underline"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const Notes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -175,7 +196,9 @@ const Notes = () => {
                     </Button>
                   </div>
                 </div>
-                <p className="mt-2 text-muted-foreground">{note.description}</p>
+                <p className="mt-2 text-muted-foreground">
+                  {formatTextWithLinks(note.description)}
+                </p>
               </>
             )}
           </Card>
