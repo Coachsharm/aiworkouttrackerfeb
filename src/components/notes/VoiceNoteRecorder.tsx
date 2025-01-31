@@ -22,6 +22,7 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [timeLeft, setTimeLeft] = useState(15);
+  const [isRecording, setIsRecording] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -29,11 +30,13 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
     status,
     startRecording,
     stopRecording,
-    mediaBlobUrl
+    mediaBlobUrl,
+    clearBlobUrl
   } = useReactMediaRecorder({
     audio: true,
     onStop: async (blobUrl, blob) => {
       setIsOpen(true);
+      setIsRecording(false);
       if (blob) {
         try {
           const storage = getStorage();
@@ -42,11 +45,15 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
           await uploadBytes(storageRef, blob);
           const downloadUrl = await getDownloadURL(storageRef);
           setMediaUrl(downloadUrl);
+          toast({
+            title: "Recording completed",
+            description: "You can now save your voice note."
+          });
         } catch (error) {
           console.error('Error uploading voice note:', error);
           toast({
             variant: "destructive",
-            title: "Error saving voice note",
+            title: "Error saving recording",
             description: "Please try again."
           });
         }
@@ -58,11 +65,12 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (status === 'recording') {
+    if (isRecording) {
       timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             stopRecording();
+            setIsRecording(false);
             return 15;
           }
           return prev - 1;
@@ -70,7 +78,23 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [status, stopRecording]);
+  }, [isRecording, stopRecording]);
+
+  const handleStartRecording = () => {
+    setTimeLeft(15);
+    setIsRecording(true);
+    startRecording();
+    toast({
+      title: "Recording started",
+      description: "Recording for 15 seconds..."
+    });
+  };
+
+  const handleStopRecording = () => {
+    stopRecording();
+    setIsRecording(false);
+    setTimeLeft(15);
+  };
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -85,7 +109,20 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
       onSave(title, mediaUrl);
       setTitle('');
       setIsOpen(false);
+      clearBlobUrl();
+      setMediaUrl(null);
+      toast({
+        title: "Voice note saved",
+        description: "Your voice note has been saved successfully."
+      });
     }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setTitle('');
+    clearBlobUrl();
+    setMediaUrl(null);
   };
 
   return (
@@ -93,30 +130,29 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
       <Button
         variant="outline"
         size="icon"
-        className={`voice-recorder-trigger ${status === 'recording' ? 'bg-red-500 hover:bg-red-600' : ''}`}
+        className={`voice-recorder-trigger ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
         onClick={() => {
-          if (status === 'recording') {
-            stopRecording();
+          if (isRecording) {
+            handleStopRecording();
           } else {
-            startRecording();
-            setTimeLeft(15);
+            handleStartRecording();
           }
         }}
       >
-        {status === 'recording' ? (
+        {isRecording ? (
           <Square className="h-4 w-4" />
         ) : (
           <Mic className="h-4 w-4" />
         )}
       </Button>
 
-      {status === 'recording' && (
+      {isRecording && (
         <div className="fixed bottom-4 right-4 bg-black/80 text-white px-4 py-2 rounded-full">
           Recording: {timeLeft}s
         </div>
       )}
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Save Voice Note</DialogTitle>
@@ -130,6 +166,7 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
             {mediaUrl && (
               <audio controls className="w-full">
                 <source src={mediaUrl} type="audio/wav" />
+                Your browser does not support the audio element.
               </audio>
             )}
           </div>
