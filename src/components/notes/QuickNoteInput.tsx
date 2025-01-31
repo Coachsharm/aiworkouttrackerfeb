@@ -10,19 +10,22 @@ interface QuickNoteInputProps {
 }
 
 const QuickNoteInput = ({ value, onChange, onAdd }: QuickNoteInputProps) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onAdd();
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       <Input
         type="text"
-        placeholder="Title (use comma to separate)"
+        placeholder="Title, description (use comma to separate)"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="flex-1"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            onAdd();
-          }
-        }}
+        onKeyDown={handleKeyDown}
       />
       <Button
         onClick={onAdd}

@@ -86,7 +86,7 @@ const Login = () => {
         <ThemeToggle />
       </div>
       <LampContainer>
-        <div className="w-full max-w-md space-y-6 mt-20">
+        <div className="w-full max-w-md space-y-6 -mt-32"> {/* Adjusted margin top */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center mb-4 animate-scale-in">
               <div className="relative w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
@@ -106,10 +106,10 @@ const Login = () => {
             >
               Thrive Quick Notes
             </motion.h1>
-            <p className="text-red-500 font-semibold">Coach Sharm, MSc</p>
+            <p className="text-primary font-semibold">Coach Sharm, MSc</p>
           </div>
           
-          <form onSubmit={handleLogin} className="glass-card p-6 space-y-4 rounded-lg animate-scale-in">
+          <form onSubmit={handleLogin} className="glass-card p-6 space-y-4 rounded-lg animate-scale-in border border-primary/20 bg-background/60 backdrop-blur-lg">
             <div className="space-y-3">
               <div className="space-y-2">
                 <Input

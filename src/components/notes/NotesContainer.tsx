@@ -123,14 +123,19 @@ const NotesContainer = () => {
 
   const addNote = async () => {
     if (!user) return;
+    
     try {
+      const [title, ...descriptionParts] = quickNote.split(',');
+      const description = descriptionParts.join(',').trim();
+      
       await addDoc(collection(db, 'notes'), {
-        title: '',
-        description: quickNote.trim(),
+        title: title.trim(),
+        description: description || title.trim(), // If no comma, use entire input as description
         createdAt: Timestamp.now(),
         modifiedAt: Timestamp.now(),
         userId: user.uid
       });
+      
       setQuickNote('');
       toast({
         title: "Quick note added",
