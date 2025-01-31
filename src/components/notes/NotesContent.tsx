@@ -3,6 +3,7 @@ import { GripHorizontal } from 'lucide-react';
 import { Note, SortOption, SortDirection } from './types';
 import NoteSidebar from './NoteSidebar';
 import NoteContent from './NoteContent';
+import TodoList from '../todos/TodoList';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -56,8 +57,7 @@ const NotesContent = ({
       className="min-h-[calc(100vh-16rem)] rounded-lg border"
     >
       <ResizablePanel 
-        defaultSize={sidebarWidth}
-        onResize={onSidebarWidthChange}
+        defaultSize={30}
         className="bg-background"
       >
         <NoteSidebar
@@ -80,7 +80,7 @@ const NotesContent = ({
         </div>
       </ResizableHandle>
 
-      <ResizablePanel defaultSize={70}>
+      <ResizablePanel defaultSize={45}>
         {selectedNote ? (
           <NoteContent
             note={selectedNote}
@@ -97,6 +97,16 @@ const NotesContent = ({
             Select a note to view its contents
           </div>
         )}
+      </ResizablePanel>
+
+      <ResizableHandle className="w-2 bg-border/10 hover:bg-border/20 transition-colors">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <GripHorizontal className="h-4 w-4 text-muted-foreground/40" />
+        </div>
+      </ResizableHandle>
+
+      <ResizablePanel defaultSize={25}>
+        <TodoList />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

@@ -90,9 +90,13 @@ const NoteContent = ({
             <h2 className="text-2xl font-semibold text-yellow-500">
               {note.title}
             </h2>
-            <div className="space-y-1 text-sm text-muted-foreground">
-              <p>Created: {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}</p>
-              <p>Modified: {format(note.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}</p>
+            <div className="space-y-1 text-sm">
+              <p className="text-muted-foreground/70">
+                Created: {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
+              </p>
+              <p className="text-muted-foreground">
+                Modified: {format(note.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
