@@ -13,7 +13,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  Timestamp 
+  Timestamp,
+  orderBy
 } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,7 +40,8 @@ const TodoList = () => {
 
     const todosQuery = query(
       collection(db, 'todos'),
-      where('userId', '==', user.uid)
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(todosQuery, (snapshot) => {
@@ -48,9 +50,7 @@ const TodoList = () => {
         ...doc.data()
       })) as Todo[];
       
-      setTodos(todosData.sort((a, b) => 
-        b.createdAt.seconds - a.createdAt.seconds
-      ));
+      setTodos(todosData);
     });
 
     return () => unsubscribe();
@@ -109,6 +109,13 @@ const TodoList = () => {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTodo(e as any);
+    }
+  };
+
   return (
     <Card className="p-4 h-full">
       <h2 className="text-lg font-semibold mb-4">Things to Do</h2>
@@ -116,6 +123,7 @@ const TodoList = () => {
         <Input
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Add a new todo..."
           className="flex-1"
         />

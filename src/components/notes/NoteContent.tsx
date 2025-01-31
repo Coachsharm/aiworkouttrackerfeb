@@ -86,36 +86,7 @@ const NoteContent = ({
     <div className="p-4">
       <div className="animate-fade-in space-y-4">
         <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-yellow-500">
-              {note.title}
-            </h2>
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground/70">
-                Created: {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
-              </p>
-              <p className="text-muted-foreground">
-                Modified: {format(note.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onShare(note)}
-              title="Share note"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onCopy(note)}
-              title="Copy note"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -144,6 +115,39 @@ const NoteContent = ({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <h2 className="text-2xl font-semibold text-yellow-500">
+              {note.title}
+            </h2>
+          </div>
+        </div>
+        
+        <div className="space-y-1 text-sm">
+          <p className="text-muted-foreground/70">
+            Created: {format(note.createdAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
+          </p>
+          <p className="text-muted-foreground">
+            Modified: {format(note.modifiedAt.toDate(), "dd MMMM yyyy, HH:mm:ss")}
+          </p>
+        </div>
+
+        <div className="flex">
+          <div className="flex flex-col gap-2 mr-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onShare(note)}
+              title="Share note"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onCopy(note)}
+              title="Copy note"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -164,24 +168,25 @@ const NoteContent = ({
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
+
+          <div
+            contentEditable={isEditing}
+            suppressContentEditableWarning
+            className={cn(
+              "prose prose-sm max-w-none rounded-md p-2 flex-1",
+              isEditing && "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            )}
+            onDoubleClick={handleDoubleClick}
+            onBlur={handleBlur}
+            dangerouslySetInnerHTML={{
+              __html: formatTextWithLinks(note.description).map(part => 
+                typeof part === 'string' ? part : part?.props?.href ? 
+                  `<a href="${part.props.href}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-600 underline break-all">${part.props.children}</a>` : 
+                  ''
+              ).join('')
+            }}
+          />
         </div>
-        <div
-          contentEditable={isEditing}
-          suppressContentEditableWarning
-          className={cn(
-            "prose prose-sm max-w-none rounded-md p-2",
-            isEditing && "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          )}
-          onDoubleClick={handleDoubleClick}
-          onBlur={handleBlur}
-          dangerouslySetInnerHTML={{
-            __html: formatTextWithLinks(note.description).map(part => 
-              typeof part === 'string' ? part : part?.props?.href ? 
-                `<a href="${part.props.href}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-600 underline break-all">${part.props.children}</a>` : 
-                ''
-            ).join('')
-          }}
-        />
       </div>
     </div>
   );
