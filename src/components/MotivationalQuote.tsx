@@ -30,7 +30,7 @@ const MotivationalQuote = () => {
   if (!quote) return null;
 
   return (
-    <div className="text-center animate-fade-in">
+    <div className="text-center animate-fade-in -mt-4">
       <p className="text-red-500 dark:text-red-400 text-lg font-medium mb-1">
         "{quote.text}"
       </p>

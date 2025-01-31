@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '../ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface VoiceNoteRecorderProps {
   onSave: (title: string, audioUrl: string) => void;
@@ -21,6 +23,7 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
   const [title, setTitle] = useState('');
   const [timeLeft, setTimeLeft] = useState(15);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const {
     status,
@@ -29,10 +32,29 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
     mediaBlobUrl
   } = useReactMediaRecorder({
     audio: true,
-    onStop: (blobUrl) => {
+    onStop: async (blobUrl, blob) => {
       setIsOpen(true);
+      if (blob) {
+        try {
+          const storage = getStorage();
+          const fileName = `voice-notes/${user?.uid}/${Date.now()}.wav`;
+          const storageRef = ref(storage, fileName);
+          await uploadBytes(storageRef, blob);
+          const downloadUrl = await getDownloadURL(storageRef);
+          setMediaUrl(downloadUrl);
+        } catch (error) {
+          console.error('Error uploading voice note:', error);
+          toast({
+            variant: "destructive",
+            title: "Error saving voice note",
+            description: "Please try again."
+          });
+        }
+      }
     }
   });
+
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -59,8 +81,8 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
       });
       return;
     }
-    if (mediaBlobUrl) {
-      onSave(title, mediaBlobUrl);
+    if (mediaUrl) {
+      onSave(title, mediaUrl);
       setTitle('');
       setIsOpen(false);
     }
@@ -71,7 +93,7 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
       <Button
         variant="outline"
         size="icon"
-        className={status === 'recording' ? 'bg-red-500 hover:bg-red-600' : ''}
+        className={`voice-recorder-trigger ${status === 'recording' ? 'bg-red-500 hover:bg-red-600' : ''}`}
         onClick={() => {
           if (status === 'recording') {
             stopRecording();
@@ -105,9 +127,9 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            {mediaBlobUrl && (
+            {mediaUrl && (
               <audio controls className="w-full">
-                <source src={mediaBlobUrl} type="audio/wav" />
+                <source src={mediaUrl} type="audio/wav" />
               </audio>
             )}
           </div>

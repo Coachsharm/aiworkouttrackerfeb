@@ -21,7 +21,7 @@ const AnimatedClock = () => {
   const seconds = formatNumber(time.getSeconds());
 
   return (
-    <div className="flex items-center justify-center gap-2 font-mono">
+    <div className="flex items-center justify-center gap-2 font-mono scale-150 -mt-8">
       <div className="flex gap-1">
         {hours.split('').map((digit, idx) => (
           <motion.div
