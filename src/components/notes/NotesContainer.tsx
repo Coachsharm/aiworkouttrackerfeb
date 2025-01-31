@@ -34,6 +34,7 @@ const NotesContainer = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const db = getFirestore();
+  const [voiceNotes, setVoiceNotes] = useState<Note[]>([]);
 
   useEffect(() => {
     localStorage.setItem('sidebarWidth', sidebarWidth.toString());
@@ -291,6 +292,33 @@ const NotesContainer = () => {
     }
   };
 
+  const handleVoiceNote = async (title: string, audioUrl: string) => {
+    if (!user) return;
+    
+    try {
+      await addDoc(collection(db, 'notes'), {
+        title,
+        description: `[Voice Note] ${audioUrl}`,
+        createdAt: Timestamp.now(),
+        modifiedAt: Timestamp.now(),
+        userId: user.uid,
+        isVoiceNote: true
+      });
+      
+      toast({
+        title: "Voice note added",
+        description: "Your voice note has been saved."
+      });
+    } catch (error) {
+      console.error('Error adding voice note:', error);
+      toast({
+        variant: "destructive",
+        title: "Error saving voice note",
+        description: "Please try again."
+      });
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
       <NotesHeader
@@ -301,6 +329,7 @@ const NotesContainer = () => {
         keywords={keywords}
         onAddNote={addNote}
         onKeywordClick={handleKeywordClick}
+        onVoiceNote={handleVoiceNote}
       />
       
       <NotesContent

@@ -9,6 +9,7 @@ import Notes from '@/components/Notes';
 import { Separator } from '@/components/ui/separator';
 import { FileText, Settings } from 'lucide-react';
 import MotivationalQuote from '@/components/MotivationalQuote';
+import AnimatedClock from '@/components/AnimatedClock';
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -54,16 +55,9 @@ const Dashboard = () => {
       </header>
 
       <main className="flex-1 container mx-auto p-4 space-y-4">
-        <div className="text-center py-4">
-          <time className="text-6xl font-light tabular-nums">
-            {time.toLocaleTimeString('en-US', {
-              hour12: false,
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            })}
-          </time>
-          <div className="mt-2 mb-4">
+        <div className="text-center py-8">
+          <AnimatedClock />
+          <div className="mt-6 mb-4">
             <MotivationalQuote />
           </div>
         </div>

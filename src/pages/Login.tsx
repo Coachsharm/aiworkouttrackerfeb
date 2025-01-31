@@ -86,7 +86,7 @@ const Login = () => {
         <ThemeToggle />
       </div>
       <LampContainer>
-        <div className="w-full max-w-md space-y-6 -mt-32"> {/* Adjusted margin top */}
+        <div className="w-full max-w-md space-y-6 -mt-40">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center mb-4 animate-scale-in">
               <div className="relative w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
@@ -109,7 +109,7 @@ const Login = () => {
             <p className="text-primary font-semibold">Coach Sharm, MSc</p>
           </div>
           
-          <form onSubmit={handleLogin} className="glass-card p-6 space-y-4 rounded-lg animate-scale-in border border-primary/20 bg-background/60 backdrop-blur-lg">
+          <form onSubmit={handleLogin} className="glass-card p-6 space-y-4 rounded-lg animate-scale-in border border-primary/20 dark:bg-black/40 bg-black/80 backdrop-blur-lg">
             <div className="space-y-3">
               <div className="space-y-2">
                 <Input
@@ -117,7 +117,7 @@ const Login = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale"
+                  className="input-style bg-white/5 text-white placeholder:text-white/70"
                   required
                 />
               </div>
@@ -128,13 +128,13 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-style bg-white/5 dark:bg-black/5 backdrop-blur-sm border border-black/10 dark:border-white/10 shadow-sm hover-scale pr-10"
+                  className="input-style bg-white/5 text-white placeholder:text-white/70 pr-10"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -145,10 +145,11 @@ const Login = () => {
                   id="rememberMe"
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  className="border-white/70"
                 />
                 <label
                   htmlFor="rememberMe"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium leading-none text-white/90"
                 >
                   Remember me
                 </label>
@@ -157,7 +158,7 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="w-full button-style hover-scale"
+              className="w-full button-style hover-scale text-white"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
@@ -167,14 +168,14 @@ const Login = () => {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-primary hover:underline"
+                className="text-white/90 hover:text-white hover:underline"
               >
                 Forgot password?
               </button>
 
-              <p className="text-muted-foreground">
+              <p className="text-white/70">
                 New? {" "}
-                <Link to="/register" className="text-primary hover:underline">
+                <Link to="/register" className="text-white hover:underline">
                   Click here to register
                 </Link>
               </p>

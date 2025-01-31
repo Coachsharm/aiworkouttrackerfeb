@@ -2,14 +2,16 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
+import VoiceNoteRecorder from './VoiceNoteRecorder';
 
 interface QuickNoteInputProps {
   value: string;
   onChange: (value: string) => void;
   onAdd: () => void;
+  onVoiceNote: (title: string, audioUrl: string) => void;
 }
 
-const QuickNoteInput = ({ value, onChange, onAdd }: QuickNoteInputProps) => {
+const QuickNoteInput = ({ value, onChange, onAdd, onVoiceNote }: QuickNoteInputProps) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -35,6 +37,7 @@ const QuickNoteInput = ({ value, onChange, onAdd }: QuickNoteInputProps) => {
         <Plus className="h-4 w-4" />
         Add Note
       </Button>
+      <VoiceNoteRecorder onSave={onVoiceNote} />
     </div>
   );
 };

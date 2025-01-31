@@ -14,6 +14,7 @@ interface NotesHeaderProps {
   keywords: KeywordCount[];
   onAddNote: () => void;
   onKeywordClick: (keyword: string) => void;
+  onVoiceNote: (title: string, audioUrl: string) => void;
 }
 
 const NotesHeader = ({
@@ -23,7 +24,8 @@ const NotesHeader = ({
   setSearchQuery,
   keywords,
   onAddNote,
-  onKeywordClick
+  onKeywordClick,
+  onVoiceNote
 }: NotesHeaderProps) => {
   return (
     <div className="space-y-4">
@@ -32,6 +34,7 @@ const NotesHeader = ({
           value={quickNote}
           onChange={setQuickNote}
           onAdd={onAddNote}
+          onVoiceNote={onVoiceNote}
         />
 
         <div className="relative">

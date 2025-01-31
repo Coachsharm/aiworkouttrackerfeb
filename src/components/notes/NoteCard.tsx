@@ -54,16 +54,16 @@ const NoteCard = ({ note, onEdit, onDelete }: NoteCardProps) => {
     <Card className="p-4 space-y-4">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          {note.title && note.title.trim() !== '' && (
-            <div className="flex items-center gap-2 mb-2">
-              {SmartIcon && (
-                <SmartIcon className="h-5 w-5 text-muted-foreground" />
-              )}
+          <div className="flex items-center gap-2 mb-2">
+            {SmartIcon && (
+              <SmartIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+            )}
+            {note.title && note.title.trim() !== '' && (
               <h3 className="text-lg font-medium dark:text-amber-400 text-amber-600">
                 {note.title}
               </h3>
-            </div>
-          )}
+            )}
+          </div>
           <p className="text-black dark:text-white whitespace-pre-wrap break-words mb-2">
             {formatTextWithLinks(note.description)}
           </p>
