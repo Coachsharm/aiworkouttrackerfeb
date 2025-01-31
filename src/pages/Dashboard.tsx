@@ -57,12 +57,12 @@ const Dashboard = () => {
       <main className="flex-1 container mx-auto p-4 space-y-4">
         <div className="text-center py-8">
           <AnimatedClock />
-          <div className="mt-6 mb-4">
+          <div className="mt-8 mb-6">
             <MotivationalQuote />
           </div>
         </div>
 
-        <Separator className="my-4" />
+        <Separator className="my-2" />
         
         <Notes />
       </main>

@@ -20,7 +20,7 @@ const QuickNoteInput = ({ value, onChange, onAdd, onVoiceNote }: QuickNoteInputP
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-full max-w-[calc(100%-2rem)] mx-auto">
       <Input
         type="text"
         placeholder="Title, description (use comma to separate)"
