@@ -86,12 +86,12 @@ const Login = () => {
         <ThemeToggle />
       </div>
       <LampContainer>
-        <div className="w-full max-w-md space-y-6 mt-[-12vh]">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center mb-6 animate-scale-in">
-              <div className="relative w-48 h-48 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
-                <FileText className="w-24 h-24 text-primary animate-fade-in" />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
+        <div className="w-full max-w-md space-y-6 mt-20">
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center mb-4 animate-scale-in">
+              <div className="relative w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
+                <FileText className="w-12 h-12 text-primary animate-fade-in" />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
               </div>
             </div>
             <motion.h1 
@@ -109,8 +109,8 @@ const Login = () => {
             <p className="text-red-500 font-semibold">Coach Sharm, MSc</p>
           </div>
           
-          <form onSubmit={handleLogin} className="glass-card p-8 space-y-6 rounded-lg animate-scale-in">
-            <div className="space-y-4">
+          <form onSubmit={handleLogin} className="glass-card p-6 space-y-4 rounded-lg animate-scale-in">
+            <div className="space-y-3">
               <div className="space-y-2">
                 <Input
                   type="email"
@@ -163,16 +163,16 @@ const Login = () => {
               {loading ? "Logging in..." : "Login"}
             </Button>
 
-            <div className="space-y-2 text-center">
+            <div className="space-y-2 text-center text-sm">
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm text-primary hover:underline"
+                className="text-primary hover:underline"
               >
                 Forgot password?
               </button>
 
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground">
                 New? {" "}
                 <Link to="/register" className="text-primary hover:underline">
                   Click here to register
