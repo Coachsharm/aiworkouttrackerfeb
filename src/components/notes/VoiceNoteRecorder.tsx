@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useMediaRecorder } from 'react-media-recorder';
+import { useReactMediaRecorder } from 'react-media-recorder';
 import { Button } from '../ui/button';
 import { Mic, Square, Save } from 'lucide-react';
 import {
@@ -27,7 +27,7 @@ const VoiceNoteRecorder = ({ onSave }: VoiceNoteRecorderProps) => {
     startRecording,
     stopRecording,
     mediaBlobUrl
-  } = useMediaRecorder({
+  } = useReactMediaRecorder({
     audio: true,
     onStop: (blobUrl) => {
       setIsOpen(true);
