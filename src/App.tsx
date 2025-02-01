@@ -6,6 +6,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
+import Index from "@/pages/Index";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -41,7 +42,14 @@ const App = () => {
                 </PrivateRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Index />
+                </PrivateRoute>
+              }
+            />
           </Routes>
         </BrowserRouter>
         <Toaster />

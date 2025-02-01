@@ -8,11 +8,19 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 
+interface Exercise {
+  name: string;
+  sets: number;
+  reps: number;
+  weight?: number;
+  notes?: string;
+}
+
 interface Workout {
   id: string;
-  exercise: string;
-  weight: number;
-  reps: number;
+  exercises: Exercise[];
+  duration: number;
+  type: string;
   timestamp: Date;
 }
 
@@ -32,20 +40,26 @@ export const WorkoutHistory = ({ workouts }: WorkoutHistoryProps) => {
           <TableRow>
             <TableHead>Date</TableHead>
             <TableHead>Exercise</TableHead>
-            <TableHead>Weight (KG)</TableHead>
+            <TableHead>Sets</TableHead>
             <TableHead>Reps</TableHead>
+            <TableHead>Weight (KG)</TableHead>
+            <TableHead>Type</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {sortedWorkouts.map((workout) => (
-            <TableRow key={workout.id}>
-              <TableCell>
-                {workout.timestamp.toLocaleDateString()}
-              </TableCell>
-              <TableCell className="font-medium">{workout.exercise}</TableCell>
-              <TableCell>{workout.weight}</TableCell>
-              <TableCell>{workout.reps}</TableCell>
-            </TableRow>
+            workout.exercises.map((exercise, index) => (
+              <TableRow key={`${workout.id}-${index}`}>
+                <TableCell>
+                  {workout.timestamp.toLocaleDateString()}
+                </TableCell>
+                <TableCell className="font-medium">{exercise.name}</TableCell>
+                <TableCell>{exercise.sets}</TableCell>
+                <TableCell>{exercise.reps}</TableCell>
+                <TableCell>{exercise.weight || 'N/A'}</TableCell>
+                <TableCell>{workout.type}</TableCell>
+              </TableRow>
+            ))
           ))}
         </TableBody>
       </Table>
