@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { FileText, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Dumbbell } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { LampContainer } from '@/components/ui/lamp';
 import { motion } from 'framer-motion';
@@ -90,7 +90,7 @@ const Login = () => {
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center mb-4 animate-scale-in">
               <div className="relative w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary/20 shadow-xl">
-                <FileText className="w-12 h-12 text-primary animate-fade-in" />
+                <Dumbbell className="w-12 h-12 text-primary animate-fade-in" />
                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
               </div>
             </div>
@@ -104,7 +104,7 @@ const Login = () => {
               }}
               className="text-4xl font-bold text-gradient"
             >
-              Thrive Quick Notes
+              Thrive AI Workout Tracker
             </motion.h1>
             <p className="text-primary font-semibold">Coach Sharm, MSc</p>
           </div>
