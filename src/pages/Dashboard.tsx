@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { collection, addDoc, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,13 +10,20 @@ import { WorkoutInput } from '@/components/workout/WorkoutInput';
 import { WorkoutHistory } from '@/components/workout/WorkoutHistory';
 import { Dumbbell, LogOut, Settings } from 'lucide-react';
 
+interface Exercise {
+  name: string;
+  sets: number;
+  reps: number;
+  weight?: number;
+  notes?: string;
+}
+
 interface Workout {
   id: string;
-  exercise: string;
-  weight: number;
-  reps: number;
+  exercises: Exercise[];
+  duration: number;
+  type: string;
   timestamp: Date;
-  userId: string;
 }
 
 const Dashboard = () => {
@@ -31,10 +38,9 @@ const Dashboard = () => {
     }
 
     const fetchWorkouts = async () => {
-      const workoutsRef = collection(db, 'workouts');
+      const workoutsRef = collection(db, 'users', user.uid, 'workouts');
       const q = query(
-        workoutsRef, 
-        where('userId', '==', user.uid),
+        workoutsRef,
         orderBy('timestamp', 'desc')
       );
       
@@ -42,7 +48,7 @@ const Dashboard = () => {
       const workoutData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        timestamp: doc.data().timestamp.toDate()
+        timestamp: doc.data().timestamp?.toDate() || new Date(),
       })) as Workout[];
       
       setWorkouts(workoutData);
@@ -52,20 +58,8 @@ const Dashboard = () => {
   }, [user, navigate]);
 
   const handleWorkoutSubmit = async (workoutText: string) => {
-    if (!user) return;
-
-    const parts = workoutText.split(' ');
-    const workout = {
-      exercise: parts[0],
-      weight: parseInt(parts[1]) || 0,
-      reps: parseInt(parts[3]) || 0,
-      timestamp: new Date(),
-      userId: user.uid
-    };
-    
-    const docRef = await addDoc(collection(db, 'workouts'), workout);
-    const newWorkout = { ...workout, id: docRef.id };
-    setWorkouts(prev => [newWorkout, ...prev]);
+    // The actual submission is handled in WorkoutInput component
+    // which calls the Firebase Function directly
   };
 
   const handleLogout = async () => {
