@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Dumbbell } from 'lucide-react';
 
 interface WorkoutInputProps {
   onSubmit: (workout: string) => Promise<void>;
@@ -47,16 +46,13 @@ export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Dumbbell className="w-5 h-5 text-primary" />
-          <Input
-            placeholder="Enter workout (e.g., Deadlifts 25KG 10 reps)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="text-lg"
-            disabled={isSubmitting}
-          />
-        </div>
+        <Input
+          placeholder="Enter workout (e.g., Deadlifts 25KG 10 reps)"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="workout-input text-lg"
+          disabled={isSubmitting}
+        />
         <Button 
           type="submit" 
           className="w-full"

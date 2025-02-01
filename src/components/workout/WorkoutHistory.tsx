@@ -26,7 +26,7 @@ export const WorkoutHistory = ({ workouts }: WorkoutHistoryProps) => {
   );
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="workout-table">
       <Table>
         <TableHeader>
           <TableRow>
@@ -47,13 +47,6 @@ export const WorkoutHistory = ({ workouts }: WorkoutHistoryProps) => {
               <TableCell>{workout.reps}</TableCell>
             </TableRow>
           ))}
-          {sortedWorkouts.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                No workouts logged yet. Start by adding one above!
-              </TableCell>
-            </TableRow>
-          )}
         </TableBody>
       </Table>
     </Card>
