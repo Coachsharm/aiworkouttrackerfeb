@@ -31,20 +31,63 @@ const Register = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User created successfully:", userCredential.user);
+      
       if (name) {
-        await updateProfile(userCredential.user, {
-          displayName: name
-        });
+        try {
+          await updateProfile(userCredential.user, {
+            displayName: name
+          });
+          console.log("Profile updated successfully");
+        } catch (profileError: any) {
+          console.error("Error updating profile:", profileError);
+          // Continue even if profile update fails
+        }
       }
+      
+      toast({
+        title: "Success",
+        description: "Account created successfully!",
+      });
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      let errorMessage = "Failed to create account";
+      
+      // Handle specific Firebase error codes
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = "This email is already registered";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "Invalid email address";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = "Email/password accounts are not enabled. Please contact support.";
+          break;
+        case 'auth/weak-password':
+          errorMessage = "Password is too weak";
+          break;
+        default:
+          errorMessage = error.message || "Failed to create account";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create account",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
