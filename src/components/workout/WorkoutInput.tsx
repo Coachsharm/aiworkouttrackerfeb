@@ -5,21 +5,25 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface WorkoutInputProps {
-  onSubmit: (workout: string) => Promise<void>;
+  onSubmit?: (workout: string) => Promise<void>;
 }
 
 export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
   const [input, setInput] = useState('');
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const functions = getFunctions();
   const processWorkout = httpsCallable(functions, 'processWorkout');
   const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!input.trim()) {
       toast({
         title: "Error",
@@ -42,8 +46,8 @@ export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
     try {
       const result = await processWorkout({ 
         workoutText: input,
-        userId: user.uid 
       });
+      
       console.log('Processed workout:', result.data);
       
       toast({
@@ -51,11 +55,16 @@ export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
         description: "Workout logged successfully!",
       });
       setInput('');
-    } catch (error) {
+      
+      if (onSubmit) {
+        await onSubmit(input);
+      }
+    } catch (error: any) {
       console.error('Error processing workout:', error);
+      setError(error?.message || "Failed to process workout. Please try again.");
       toast({
         title: "Error",
-        description: "Failed to process workout. Please try again.",
+        description: error?.message || "Failed to process workout. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -66,6 +75,11 @@ export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <Input
           placeholder="Describe your workout in natural language (e.g., 'I did 3 sets of 10 bench presses at 135 pounds')"
           value={input}

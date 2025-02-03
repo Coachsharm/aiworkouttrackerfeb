@@ -14,6 +14,10 @@ exports.processWorkout = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('unauthenticated', 'User must be logged in');
   }
 
+  if (!data.workoutText) {
+    throw new functions.https.HttpsError('invalid-argument', 'No workout text provided');
+  }
+
   try {
     console.log('Processing workout with data:', data); // Debug log
 
@@ -49,16 +53,33 @@ exports.processWorkout = functions.https.onCall(async (data, context) => {
     console.log('OpenAI response:', completion.choices[0].message.content); // Debug log
 
     // Parse the response
-    const parsedWorkout = JSON.parse(completion.choices[0].message.content);
+    let parsedWorkout;
+    try {
+      parsedWorkout = JSON.parse(completion.choices[0].message.content);
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Failed to parse workout data. Please try again with a clearer description.'
+      );
+    }
 
-    // Store in Firestore - Note the collection path change
+    // Validate the parsed workout
+    if (!parsedWorkout.exercises || !Array.isArray(parsedWorkout.exercises)) {
+      throw new functions.https.HttpsError(
+        'internal',
+        'Invalid workout format. Please try again with a clearer description.'
+      );
+    }
+
+    // Store in Firestore
     const workoutDoc = await admin.firestore()
-      .collection('workouts') // Changed from users/{uid}/workouts to just 'workouts'
+      .collection('workouts')
       .add({
         ...parsedWorkout,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
         rawInput: data.workoutText,
-        createdBy: context.auth.uid // Important: Add createdBy field
+        createdBy: context.auth.uid
       });
 
     console.log('Workout stored with ID:', workoutDoc.id); // Debug log
@@ -71,6 +92,22 @@ exports.processWorkout = functions.https.onCall(async (data, context) => {
 
   } catch (error) {
     console.error('Error processing workout:', error);
-    throw new functions.https.HttpsError('internal', 'Error processing workout: ' + error.message);
+    
+    // Handle different types of errors
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    
+    if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+      throw new functions.https.HttpsError(
+        'deadline-exceeded',
+        'Request timed out. Please try again.'
+      );
+    }
+
+    throw new functions.https.HttpsError(
+      'internal',
+      'Error processing workout: ' + error.message
+    );
   }
 });
