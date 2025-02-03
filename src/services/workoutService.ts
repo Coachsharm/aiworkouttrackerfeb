@@ -1,22 +1,6 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
-
-export interface Exercise {
-  name: string;
-  sets: number;
-  reps: number;
-  weight?: number;
-  notes?: string;
-}
-
-export interface Workout {
-  id: string;
-  exercises: Exercise[];
-  duration: number;
-  type: string;
-  timestamp: Date;
-  userId: string;
-}
+import type { Workout } from '@/types/client';
 
 export const workoutService = {
   async addWorkout(workout: Omit<Workout, 'id'>) {
@@ -35,7 +19,7 @@ export const workoutService = {
   async getUserWorkouts(userId: string): Promise<Workout[]> {
     try {
       const workoutsRef = collection(db, 'workouts');
-      const q = query(workoutsRef, where('userId', '==', userId));
+      const q = query(workoutsRef, where('createdBy', '==', userId));
       const querySnapshot = await getDocs(q);
       
       return querySnapshot.docs.map(doc => ({
