@@ -15,6 +15,8 @@ exports.processWorkout = functions.https.onCall(async (data, context) => {
   }
 
   try {
+    console.log('Processing workout with data:', data); // Debug log
+
     // Process with OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -44,27 +46,31 @@ exports.processWorkout = functions.https.onCall(async (data, context) => {
       max_tokens: 500
     });
 
+    console.log('OpenAI response:', completion.choices[0].message.content); // Debug log
+
     // Parse the response
     const parsedWorkout = JSON.parse(completion.choices[0].message.content);
 
-    // Store in Firestore
-    await admin.firestore()
-      .collection('users')
-      .doc(context.auth.uid)
-      .collection('workouts')
+    // Store in Firestore - Note the collection path change
+    const workoutDoc = await admin.firestore()
+      .collection('workouts') // Changed from users/{uid}/workouts to just 'workouts'
       .add({
         ...parsedWorkout,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        rawInput: data.workoutText
+        rawInput: data.workoutText,
+        createdBy: context.auth.uid // Important: Add createdBy field
       });
+
+    console.log('Workout stored with ID:', workoutDoc.id); // Debug log
 
     return {
       success: true,
-      workout: parsedWorkout
+      workout: parsedWorkout,
+      id: workoutDoc.id
     };
 
   } catch (error) {
     console.error('Error processing workout:', error);
-    throw new functions.https.HttpsError('internal', 'Error processing workout');
+    throw new functions.https.HttpsError('internal', 'Error processing workout: ' + error.message);
   }
 });
