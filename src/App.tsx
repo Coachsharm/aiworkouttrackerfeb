@@ -27,10 +27,18 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
-              path="/dashboard"
+              path="/"
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/workouts"
+              element={
+                <PrivateRoute>
+                  <Index />
                 </PrivateRoute>
               }
             />
@@ -42,17 +50,66 @@ const App = () => {
                 </PrivateRoute>
               }
             />
+            {/* Placeholder routes for new features */}
             <Route
-              path="/"
+              path="/habits"
               element={
                 <PrivateRoute>
-                  <Index />
+                  <div className="min-h-screen">
+                    <Navbar />
+                    <div className="container max-w-7xl mx-auto p-6">
+                      <h1 className="text-3xl font-bold">Habit Tracker</h1>
+                      <p className="text-muted-foreground">Coming soon...</p>
+                    </div>
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen">
+                    <Navbar />
+                    <div className="container max-w-7xl mx-auto p-6">
+                      <h1 className="text-3xl font-bold">AI Chat</h1>
+                      <p className="text-muted-foreground">Coming soon...</p>
+                    </div>
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen">
+                    <Navbar />
+                    <div className="container max-w-7xl mx-auto p-6">
+                      <h1 className="text-3xl font-bold">Notes</h1>
+                      <p className="text-muted-foreground">Coming soon...</p>
+                    </div>
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen">
+                    <Navbar />
+                    <div className="container max-w-7xl mx-auto p-6">
+                      <h1 className="text-3xl font-bold">Client Management</h1>
+                      <p className="text-muted-foreground">Coming soon...</p>
+                    </div>
+                  </div>
                 </PrivateRoute>
               }
             />
           </Routes>
+          <Toaster />
         </BrowserRouter>
-        <Toaster />
       </AuthProvider>
     </ThemeProvider>
   );

@@ -1,49 +1,50 @@
 import { useState, useEffect } from 'react';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 import { WorkoutInput } from '@/components/workout/WorkoutInput';
 import { WorkoutHistory } from '@/components/workout/WorkoutHistory';
-import { useAuth } from '@/contexts/AuthContext';
-import { workoutService } from '@/services/workoutService';
-import type { Workout } from '@/types/client';
-import { useToast } from '@/hooks/use-toast';
+import { Navbar } from '@/components/Navbar';
 
 const Index = () => {
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState([]);
   const { user } = useAuth();
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchWorkouts = async () => {
       if (!user) return;
-      try {
-        const userWorkouts = await workoutService.getUserWorkouts(user.uid);
-        setWorkouts(userWorkouts);
-      } catch (error) {
-        console.error('Error fetching workouts:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load workouts. Please try again.",
-          variant: "destructive",
-        });
-      }
+
+      const workoutsRef = collection(db, 'workouts');
+      const q = query(
+        workoutsRef,
+        orderBy('timestamp', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const workoutData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate() || new Date(),
+      }));
+      
+      setWorkouts(workoutData);
     };
 
     fetchWorkouts();
-  }, [user, toast]);
+  }, [user]);
 
   const handleWorkoutSubmit = async (workoutText: string) => {
-    if (!user) return;
     // The actual submission is handled in WorkoutInput component
-    // which calls the Firebase Function directly
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">AI Workout Tracker</h1>
-          <p className="text-muted-foreground">
-            Log your workouts in natural language
-          </p>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <main className="container max-w-4xl mx-auto p-6 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Workout Tracker</h1>
+          <p className="text-muted-foreground">Log your workouts and track your progress.</p>
         </div>
 
         <WorkoutInput onSubmit={handleWorkoutSubmit} />
@@ -54,7 +55,7 @@ const Index = () => {
           </h2>
           <WorkoutHistory workouts={workouts} />
         </div>
-      </div>
+      </main>
     </div>
   );
 };
