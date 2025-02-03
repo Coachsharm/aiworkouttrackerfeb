@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { Navbar } from "@/components/Navbar";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
