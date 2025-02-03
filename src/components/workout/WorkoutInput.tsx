@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WorkoutInputProps {
   onSubmit: (workout: string) => Promise<void>;
@@ -15,6 +16,7 @@ export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const functions = getFunctions();
   const processWorkout = httpsCallable(functions, 'processWorkout');
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +29,21 @@ export const WorkoutInput = ({ onSubmit }: WorkoutInputProps) => {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to log workouts",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const result = await processWorkout({ workoutText: input });
+      const result = await processWorkout({ 
+        workoutText: input,
+        userId: user.uid 
+      });
       console.log('Processed workout:', result.data);
       
       toast({

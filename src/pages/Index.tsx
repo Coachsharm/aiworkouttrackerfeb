@@ -1,33 +1,37 @@
 import { useState, useEffect } from 'react';
 import { WorkoutInput } from '@/components/workout/WorkoutInput';
 import { WorkoutHistory } from '@/components/workout/WorkoutHistory';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import { workoutService } from '@/services/workoutService';
+import type { Workout } from '@/services/workoutService';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const [workouts, setWorkouts] = useState([]);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (!user) return;
+    const fetchWorkouts = async () => {
+      if (!user) return;
+      try {
+        const userWorkouts = await workoutService.getUserWorkouts(user.uid);
+        setWorkouts(userWorkouts);
+      } catch (error) {
+        console.error('Error fetching workouts:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load workouts. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
 
-    const workoutsRef = collection(db, 'users', user.uid, 'workouts');
-    const q = query(workoutsRef, orderBy('timestamp', 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const workoutData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || new Date(),
-      }));
-      setWorkouts(workoutData);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
+    fetchWorkouts();
+  }, [user, toast]);
 
   const handleWorkoutSubmit = async (workoutText: string) => {
+    if (!user) return;
     // The actual submission is handled in WorkoutInput component
     // which calls the Firebase Function directly
   };
