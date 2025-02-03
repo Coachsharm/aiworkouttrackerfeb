@@ -3,7 +3,7 @@ import { WorkoutInput } from '@/components/workout/WorkoutInput';
 import { WorkoutHistory } from '@/components/workout/WorkoutHistory';
 import { useAuth } from '@/contexts/AuthContext';
 import { workoutService } from '@/services/workoutService';
-import type { Workout } from '@/services/workoutService';
+import type { Workout } from '@/types/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
